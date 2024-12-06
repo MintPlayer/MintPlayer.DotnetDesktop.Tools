@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<PackageId>QuineMcCluskey</PackageId>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<Authors>Pieterjan De Clippel</Authors>
+		<Company>MintPlayer</Company>
+		<Description>.NET Implementation of the Quine-McCluskey algorithm</Description>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/MintPlayer/KarnaughMap/QuineMcCluskey</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/MintPlayer/KarnaughMap</RepositoryUrl>
+		<RepositoryType>Git</RepositoryType>
+		<PackageTags>Quine-McCluskey algorithm, logic simplification</PackageTags>
+		<Version>7.0.1</Version>
+	</PropertyGroup>
+
+</Project>
