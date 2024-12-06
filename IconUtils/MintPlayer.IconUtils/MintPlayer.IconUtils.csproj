@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<!-- Icon is only available on Windows -->
 		<!-- https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/6.0/system-drawing-common-windows-only#reason-for-change -->
-		<TargetFramework>net8.0-windows</TargetFramework>
+		<TargetFramework>net9.0-windows</TargetFramework>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -15,11 +15,11 @@
 		<Company>MintPlayer</Company>
 		<Description>Extract Icons</Description>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.BrowserDialog/MintPlayer.IconUtils</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.BrowserDialog</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/IconUtils/MintPlayer.IconUtils</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
 		<PackageTags>Icon, Split, Extract</PackageTags>
-		<Version>8.0.0</Version>
+		<Version>9.0.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
