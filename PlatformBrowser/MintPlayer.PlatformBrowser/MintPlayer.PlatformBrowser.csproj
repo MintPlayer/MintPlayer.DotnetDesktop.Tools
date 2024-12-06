@@ -4,6 +4,8 @@
 		<OutputType>Library</OutputType>
 		<!-- Must be a specific windows version target -->
 		<TargetFrameworks>net9.0;net9.0-windows10.0.22621</TargetFrameworks>
+		<!-- Used for CI/CD on Ubuntu -->
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<Authors>Pieterjan De Clippel</Authors>
@@ -18,9 +20,6 @@
 
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		
-		<!-- Used for CI/CD -->
-		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 	</PropertyGroup>
 
 	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
