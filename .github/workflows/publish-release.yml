@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - 'release/**'
-
+ 
 jobs:
   build:
 
     name: publish-release
     runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
 
     steps:
     - name: Checkout
