@@ -1,5 +1,6 @@
 ﻿using MintPlayer.IconUtils;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace MintPlayer.BrowserDialog;
 
@@ -106,6 +107,7 @@ public partial class BrowserDialog : Form
 
     private ReadOnlyCollection<PlatformBrowser.Browser> browsers = new ReadOnlyCollection<PlatformBrowser.Browser>(new List<PlatformBrowser.Browser>());
     private PlatformBrowser.Browser? defaultBrowser;
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public PlatformBrowser.Browser? SelectedBrowser
     {
         get

@@ -8,6 +8,7 @@ using System.ComponentModel.Design.Serialization;
 using KarnaughMap.Events.EventArgs;
 using KarnaughMap.Events.EventHandlers;
 using KarnaughMap.Exceptions;
+using System.ComponentModel;
 
 namespace KarnaughMap
 {
@@ -337,11 +338,13 @@ namespace KarnaughMap
 
         #region InputVariables
         /// <summary>Names of the input variables.</summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public MintPlayer.ObservableCollection.ObservableCollection<string> InputVariables { get; private set; }
         #endregion
         #region OutputVariable
         private string outputVariable;
         /// <summary>Name of the output variable.</summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string OutputVariable
         {
             get => outputVariable;
@@ -355,6 +358,7 @@ namespace KarnaughMap
         #region Mode
         private Enums.eEditMode mode;
         /// <summary>Defines whether you want to edit/solve the Karnaugh map.</summary>
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Enums.eEditMode Mode
         {
             get => mode;
@@ -388,6 +392,7 @@ namespace KarnaughMap
         #endregion
         #region SelectedLoop
         private QuineMcCluskey.RequiredLoop selected_loop;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public QuineMcCluskey.RequiredLoop SelectedLoop
         {
             get => selected_loop;
