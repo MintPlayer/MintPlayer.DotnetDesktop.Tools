@@ -4,7 +4,6 @@
 		<TargetFramework>net9.0-windows</TargetFramework>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
-		<PackageId>KarnaughMap</PackageId>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<UseWindowsForms>true</UseWindowsForms>
