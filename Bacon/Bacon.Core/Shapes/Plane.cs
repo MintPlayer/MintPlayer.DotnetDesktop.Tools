@@ -1,0 +1,8 @@
+﻿using System.Numerics;
+
+namespace Bacon.Core.Shapes;
+
+public abstract class Plane<TCoordinate> : Shape<TCoordinate>
+    where TCoordinate : struct, INumber<TCoordinate>
+{
+}
