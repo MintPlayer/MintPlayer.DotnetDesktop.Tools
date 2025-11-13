@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<!-- Must be a specific windows version target -->
-		<TargetFrameworks>net9.0;net9.0-windows10.0.22621</TargetFrameworks>
+		<TargetFrameworks>net10.0;net10.0-windows10.0.22621</TargetFrameworks>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -16,7 +16,7 @@
 		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/PlatformBrowser/MintPlayer.PlatformBrowser</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
-		<Version>9.0.0</Version>
+		<Version>10.0.0</Version>
 
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>

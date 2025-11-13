@@ -4,7 +4,7 @@
 		<OutputType>WinExe</OutputType>
 		<!-- Must target a specific windows version -->
 		<!-- order to get UWP browsers too. -->
-		<TargetFramework>net9.0-windows10.0.22621</TargetFramework>
+		<TargetFramework>net10.0-windows10.0.22621</TargetFramework>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<ImplicitUsings>enable</ImplicitUsings>

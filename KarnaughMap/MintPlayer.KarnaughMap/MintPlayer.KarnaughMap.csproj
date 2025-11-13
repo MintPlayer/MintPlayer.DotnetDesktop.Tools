@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0-windows</TargetFramework>
+		<TargetFramework>net10.0-windows</TargetFramework>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<UseWindowsForms>true</UseWindowsForms>
-		<Version>9.1.0</Version>
+		<Version>10.0.0</Version>
 		<Description>This package contains a .NET Core Windows Forms control that renders a Karnaugh-map which is fully interactive.</Description>
 		<Authors>Pieterjan De Clippel</Authors>
 		<Company>MintPlayer</Company>
