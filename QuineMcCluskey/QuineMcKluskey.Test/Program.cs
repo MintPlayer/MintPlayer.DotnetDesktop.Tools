@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace QuineMcCluskey.Test
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var random = new Random();
             var list = new List<int>();
@@ -19,7 +20,7 @@ namespace QuineMcCluskey.Test
 
             while (true)
             {
-                var loops = QuineMcCluskeySolver.QMC_Solve(list, new int[] { });
+                var loops = await QuineMcCluskeySolver.QMC_Solve(list, new int[] { });
 
                 Console.ReadKey();
             }

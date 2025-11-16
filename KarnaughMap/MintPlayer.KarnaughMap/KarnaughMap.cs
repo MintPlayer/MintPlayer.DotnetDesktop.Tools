@@ -216,7 +216,7 @@ namespace KarnaughMap
                 Invalidate();
             }
         }
-        public Task SolveSelection()
+        public async Task SolveSelection()
         {
             try
             {
@@ -259,7 +259,8 @@ namespace KarnaughMap
                         }
                     }
 
-                    var result = QuineMcCluskey.QuineMcCluskeySolver.QMC_Solve(value ? selected_ones : selected_zeros, selected_dontcares).ToList();
+                    var res = await QuineMcCluskey.QuineMcCluskeySolver.QMC_Solve(value ? selected_ones : selected_zeros, selected_dontcares);
+                    var result = res.ToList();
 
                     // Check if selection resolves to one loop.
                     if (result.Count != 1)
@@ -293,11 +294,9 @@ namespace KarnaughMap
                 ResumeLayout(true);
                 Invalidate();
             }
-
-            return Task.CompletedTask;
         }
         /// <summary>Solve the Karnaugh map using the Quine McCluskey algorithm.</summary>
-        public Task SolveAutomatically()
+        public async Task SolveAutomatically()
         {
             try
             {
@@ -306,8 +305,8 @@ namespace KarnaughMap
                     SuspendLayout();
 
                     var dontcares = ones.Intersect(zeros);
-                    var solved_loops_ones = QuineMcCluskey.QuineMcCluskeySolver.QMC_Solve(ones, dontcares);
-                    var solved_loops_zeros = QuineMcCluskey.QuineMcCluskeySolver.QMC_Solve(zeros, dontcares);
+                    var solved_loops_ones = await QuineMcCluskey.QuineMcCluskeySolver.QMC_Solve(ones, dontcares);
+                    var solved_loops_zeros = await QuineMcCluskey.QuineMcCluskeySolver.QMC_Solve(zeros, dontcares);
 
                     loops_ones.Clear();
                     loops_ones.AddRange(solved_loops_ones);
@@ -330,8 +329,6 @@ namespace KarnaughMap
                 ResumeLayout(true);
                 Invalidate();
             }
-
-            return Task.CompletedTask;
         }
         #endregion
         #region Properties
