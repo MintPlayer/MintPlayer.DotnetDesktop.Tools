@@ -1,4 +1,4 @@
-﻿namespace KarnaughMap
+﻿namespace MintPlayer.KarnaughMap
 {
     public partial class KarnaughMap
     {

@@ -26,7 +26,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\QuineMcCluskey\MintPlayer.QuineMcCluskey\MintPlayer.QuineMcCluskey.csproj" />
 	  <ProjectReference Include="..\..\QuineMcCluskey\MintPlayer.QuineMcCluskey.Abstractions\MintPlayer.QuineMcCluskey.Abstractions.csproj" />
 	</ItemGroup>
 

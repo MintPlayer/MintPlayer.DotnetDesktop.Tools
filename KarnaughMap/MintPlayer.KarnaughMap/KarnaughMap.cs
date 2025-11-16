@@ -2,11 +2,9 @@
 using MintPlayer.KarnaughMap.Events.EventHandlers;
 using MintPlayer.KarnaughMap.Exceptions;
 using MintPlayer.KarnaughMap.Helpers;
+using MintPlayer.QuineMcCluskey.Abstractions; // abstractions
 using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
-using System.Linq;
-using System.Windows.Forms;
-using MintPlayer.QuineMcCluskey.Abstractions; // abstractions
 
 namespace MintPlayer.KarnaughMap;
 

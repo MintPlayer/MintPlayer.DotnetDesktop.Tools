@@ -14,9 +14,11 @@ class Program
             if (!list.Contains(num)) list.Add(num);
         }
 
+        var solver = new QuineMcCluskeySolver();
+
         while (true)
         {
-            var loops = await QuineMcCluskeySolver.QMC_Solve(list, new int[] { });
+            var loops = await solver.QMC_Solve(list, new int[] { });
 
             Console.ReadKey();
         }

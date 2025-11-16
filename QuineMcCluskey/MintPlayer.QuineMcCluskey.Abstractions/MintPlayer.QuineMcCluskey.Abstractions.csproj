@@ -5,7 +5,7 @@
 		<LangVersion>14</LangVersion>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<PackageId>MintPlayer.QuineMcCluskey</PackageId>
+		<PackageId>MintPlayer.QuineMcCluskey.Abstractions</PackageId>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<Authors>Pieterjan De Clippel</Authors>

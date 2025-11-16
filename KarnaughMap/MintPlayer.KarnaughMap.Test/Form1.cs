@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using MintPlayer.KarnaughMap.Enums;
+using MintPlayer.KarnaughMap.Events.EventArgs;
 
 namespace KarnaughMap.Test
 {
@@ -34,7 +36,7 @@ namespace KarnaughMap.Test
         private List<IRequiredLoop> loopsOnes;
         private List<IRequiredLoop> loopsZeros;
 
-        private void KarnaughMap1_KarnaughLoopAdded(object sender, Events.EventArgs.KarnaughLoopAddedEventArgs e)
+        private void KarnaughMap1_KarnaughLoopAdded(object sender, KarnaughLoopAddedEventArgs e)
         {
             if (loopsOnes == null)
             {
@@ -57,7 +59,7 @@ namespace KarnaughMap.Test
                 lstLoopZeros.Items.Add(e.Loop.ToString(karnaughMap1.InputVariables.ToArray()));
             }
         }
-        private void KarnaughMap1_KarnaughMapSolved(object sender, Events.EventArgs.KarnaughMapSolvedEventArgs e)
+        private void KarnaughMap1_KarnaughMapSolved(object sender, KarnaughMapSolvedEventArgs e)
         {
             loopsOnes = e.LoopsOnes;
             loopsZeros = e.LoopsZeros;
@@ -73,7 +75,7 @@ namespace KarnaughMap.Test
         {
             if (!ignoreSelectedModeChanging)
             {
-                karnaughMap1.Mode = (Enums.eEditMode)cmbMode.SelectedIndex;
+                karnaughMap1.Mode = (EEditMode)cmbMode.SelectedIndex;
                 btnRandomFill.Enabled = cmbMode.SelectedIndex == 0;
                 btnSolve.Enabled = cmbMode.SelectedIndex == 1;
                 lstLoopOnes.Items.Clear();
@@ -81,11 +83,11 @@ namespace KarnaughMap.Test
             }
         }
 
-        private void KarnaughMap1_ModeChanging(object sender, Events.EventArgs.ModeChangingEventArgs e)
+        private void KarnaughMap1_ModeChanging(object sender, ModeChangingEventArgs e)
         {
             if (karnaughMap1.HasLoops)
             {
-                if (e.NewValue == Enums.eEditMode.Edit)
+                if (e.NewValue == EEditMode.Edit)
                 {
                     if (MessageBox.Show("This will remove all loops. Are you sure?", "Edit mode", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                     {

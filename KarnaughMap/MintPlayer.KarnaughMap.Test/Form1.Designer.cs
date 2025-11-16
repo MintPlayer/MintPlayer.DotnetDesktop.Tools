@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
 
-            this.karnaughMap1 = new KarnaughMap();
+            this.karnaughMap1 = new global::MintPlayer.KarnaughMap.KarnaughMap();
             this.btnRandomFill = new System.Windows.Forms.Button();
             this.btnSolve = new System.Windows.Forms.Button();
             this.btnSolveSelection = new System.Windows.Forms.Button();
@@ -125,7 +125,7 @@
         }
         #endregion
 
-        private KarnaughMap karnaughMap1;
+        private global::MintPlayer.KarnaughMap.KarnaughMap karnaughMap1;
         private System.Windows.Forms.Button btnRandomFill;
         private System.Windows.Forms.Button btnSolve;
         private System.Windows.Forms.Button btnSolveSelection;
