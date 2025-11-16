@@ -1,15 +1,15 @@
-﻿using MintPlayer.QuineMcCluskey;
+﻿using MintPlayer.QuineMcCluskey.Abstractions;
 
 namespace MintPlayer.KarnaughMap.Events.EventArgs;
 
 public class KarnaughMapSolvedEventArgs : System.EventArgs
 {
-    public KarnaughMapSolvedEventArgs(List<RequiredLoop> LoopsOnes, List<RequiredLoop> LoopsZeros)
+    public KarnaughMapSolvedEventArgs(List<IRequiredLoop> LoopsOnes, List<IRequiredLoop> LoopsZeros)
     {
         this.LoopsOnes = LoopsOnes;
         this.LoopsZeros = LoopsZeros;
     }
 
-    public List<RequiredLoop> LoopsOnes { get; private set; }
-    public List<RequiredLoop> LoopsZeros { get; private set; }
+    public List<IRequiredLoop> LoopsOnes { get; private set; }
+    public List<IRequiredLoop> LoopsZeros { get; private set; }
 }

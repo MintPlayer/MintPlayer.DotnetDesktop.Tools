@@ -1,6 +1,8 @@
-﻿namespace MintPlayer.QuineMcCluskey;
+﻿using MintPlayer.QuineMcCluskey.Abstractions;
 
-public class RequiredLoop
+namespace MintPlayer.QuineMcCluskey;
+
+internal class RequiredLoop : IRequiredLoop
 {
     internal RequiredLoop(Data.QuineMcCluskey.Table1.Loop loop)
     {
@@ -9,15 +11,7 @@ public class RequiredLoop
     }
 
     private Data.QuineMcCluskey.Table1.Loop loop;
-
     public int[] MinTerms { get; private set; }
-
-    public override string ToString()
-    {
-        return loop.ToString();
-    }
-    public string ToString(string[] inputVariables)
-    {
-        return loop.ToString(inputVariables);
-    }
+    public override string ToString() => loop.ToString();
+    public string ToString(string[] inputVariables) => loop.ToString(inputVariables);
 }

@@ -1,5 +1,6 @@
 ﻿using MintPlayer.QuineMcCluskey.Abstractions;
-using MintPlayer.QuineMcCluskey.Enums;
+using MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table1;
+using MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table2;
 using Table1 = MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table1.Table;
 using Table2 = MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table2.Table;
 
@@ -7,24 +8,18 @@ namespace MintPlayer.QuineMcCluskey;
 
 public class QuineMcCluskeySolver : IQuineMcCluskeySolver
 {
-    public async Task<IEnumerable<RequiredLoop>> QMC_Solve(IEnumerable<int> minterms, IEnumerable<int> dontcares)
+    public async Task<IEnumerable<IRequiredLoop>> QMC_Solve(IEnumerable<int> minterms, IEnumerable<int> dontcares)
     {
         return await Task.Run(() =>
         {
-            // For table 1, include the don't cares
             var table1 = CreateTable1(minterms.Union(dontcares));
             SolveTable1(table1);
-
-            var unused = table1.Columns
-                .SelectMany(c => c.Groups)
-                .SelectMany(g => g.Records)
-                .Where(r => !r.Used);
-
+            var unused = table1.Columns.SelectMany(c => c.Groups).SelectMany(g => g.Records).Where(r => !r.Used);
             var table2 = CreateTable2(minterms.Except(dontcares).ToList(), unused.ToList());
-
             SolveTable2(table2);
-
-            return table2.Rows.Where(r => r.Status == Data.QuineMcCluskey.Table2.eRowStatus.Required).Select(r => new RequiredLoop(r.Loop));
+            return table2.Rows
+                .Where(r => r.Status == Data.QuineMcCluskey.Table2.eRowStatus.Required)
+                .Select(r => new RequiredLoop(r.Loop));
         });
     }
 
@@ -49,9 +44,9 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
                 {
                     switch (b)
                     {
-                        case '0': return ELogicState.False;
-                        case '1': return ELogicState.True;
-                        default: return ELogicState.DontCare;
+                        case '0': return Enums.ELogicState.False;
+                        case '1': return Enums.ELogicState.True;
+                        default: return Enums.ELogicState.DontCare;
                     }
                 }),
                 m.Decimal
@@ -66,10 +61,7 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
         }
 
         foreach (var minterm in bin_minterms_padded)
-            table
-                .Columns[0]
-                .Groups[minterm.Binary.Count(n => n == ELogicState.True)]
-                .Records.Add(new Data.QuineMcCluskey.Table1.Loop(new[] { minterm.Decimal }, minterm.Binary.ToArray()));
+            table.Columns[0].Groups[minterm.Binary.Count(n => n == Enums.ELogicState.True)].Records.Add(new Data.QuineMcCluskey.Table1.Loop(new[] { minterm.Decimal }, minterm.Binary.ToArray()));
 
         return table;
     }
@@ -100,14 +92,11 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
         }
     }
 
-    private Table2 CreateTable2(List<int> minterms, List<Data.QuineMcCluskey.Table1.Loop> loops)
+    private Table2 CreateTable2(List<int> minterms, List<Data.QuineMcCluskey.Table1.Loop> loops) => new Table2
     {
-        return new Table2
-        {
-            Rows = loops.Select(l => new Data.QuineMcCluskey.Table2.Row { Loop = l, Status = Data.QuineMcCluskey.Table2.eRowStatus.Neutral }).ToList(),
-            Columns = minterms.Select(m => new Data.QuineMcCluskey.Table2.Column { Minterm = m, Status = Data.QuineMcCluskey.Table2.eColumnStatus.NotUsed }).ToList()
-        };
-    }
+        Rows = loops.Select(l => new Data.QuineMcCluskey.Table2.Row { Loop = l, Status = Data.QuineMcCluskey.Table2.eRowStatus.Neutral }).ToList(),
+        Columns = minterms.Select(m => new Data.QuineMcCluskey.Table2.Column { Minterm = m, Status = Data.QuineMcCluskey.Table2.eColumnStatus.NotUsed }).ToList()
+    };
 
     private void SolveTable2(Table2 table)
     {
@@ -123,8 +112,7 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
                 if (row.Status != Data.QuineMcCluskey.Table2.eRowStatus.Required)
                 {
                     row.Status = Data.QuineMcCluskey.Table2.eRowStatus.Required;
-                    foreach (var m in row.Loop.MinTerms)
-                        uncovered.Remove(m);
+                    foreach (var m in row.Loop.MinTerms) uncovered.Remove(m);
                 }
             }
         }
@@ -182,7 +170,7 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
         // Tie-breaker: minimal literal count.
         int LiteralCount(HashSet<Data.QuineMcCluskey.Table2.Row> set)
         {
-            return set.Sum(r => r.Loop.Data.Count(d => d != ELogicState.DontCare));
+            return set.Sum(r => r.Loop.Data.Count(d => d != Enums.ELogicState.DontCare));
         }
         int minLiteralCount = minimalProducts.Min(p => LiteralCount(p));
         var chosen = minimalProducts.First(p => LiteralCount(p) == minLiteralCount);

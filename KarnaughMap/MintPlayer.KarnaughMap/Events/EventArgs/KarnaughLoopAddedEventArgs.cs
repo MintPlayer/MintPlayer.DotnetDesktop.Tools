@@ -1,15 +1,15 @@
-﻿using MintPlayer.QuineMcCluskey;
+﻿using MintPlayer.QuineMcCluskey.Abstractions;
 
 namespace MintPlayer.KarnaughMap.Events.EventArgs;
 
 public class KarnaughLoopAddedEventArgs : System.EventArgs
 {
-    public KarnaughLoopAddedEventArgs(RequiredLoop loop, bool value)
+    public KarnaughLoopAddedEventArgs(IRequiredLoop loop, bool value)
     {
         Loop = loop;
         Value = value;
     }
 
-    public RequiredLoop Loop { get; private set; }
+    public IRequiredLoop Loop { get; private set; }
     public bool Value { get; private set; }
 }
