@@ -1,16 +1,15 @@
-﻿using KarnaughMap.Enums;
+﻿using MintPlayer.KarnaughMap.Enums;
 
-namespace KarnaughMap.Events.EventArgs
+namespace MintPlayer.KarnaughMap.Events.EventArgs;
+
+public class ModeChangingEventArgs : System.EventArgs
 {
-    public class ModeChangingEventArgs : System.EventArgs
+    public ModeChangingEventArgs(EEditMode OldValue, EEditMode NewValue)
     {
-        public ModeChangingEventArgs(eEditMode OldValue, eEditMode NewValue)
-        {
-            this.OldValue = OldValue;
-            this.NewValue = NewValue;
-        }
-        public eEditMode OldValue { get; private set; }
-        public eEditMode NewValue { get; private set; }
-        public bool Cancel { get; set; }
+        this.OldValue = OldValue;
+        this.NewValue = NewValue;
     }
+    public EEditMode OldValue { get; private set; }
+    public EEditMode NewValue { get; private set; }
+    public bool Cancel { get; set; }
 }

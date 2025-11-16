@@ -1,0 +1,11 @@
+﻿namespace MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table1;
+
+internal class Column
+{
+    public Column()
+    {
+        Groups = new List<Group>();
+    }
+
+    public List<Group> Groups { get; set; }
+}
