@@ -2,12 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>net10.0-windows</TargetFramework>
+		<LangVersion>14</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<UseWindowsForms>true</UseWindowsForms>
-		<Version>10.0.0</Version>
+		<Version>10.1.0</Version>
 		<Description>This package contains a .NET Core Windows Forms control that renders a Karnaugh-map which is fully interactive.</Description>
 		<Authors>Pieterjan De Clippel</Authors>
 		<Company>MintPlayer</Company>
@@ -19,11 +22,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.WinForms.Designer.SDK" Version="1.6.0" />
 		<PackageReference Include="MintPlayer.ObservableCollection" Version="7.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\QuineMcCluskey\QuineMcCluskey\QuineMcCluskey.csproj" />
+	  <ProjectReference Include="..\..\QuineMcCluskey\MintPlayer.QuineMcCluskey.Abstractions\MintPlayer.QuineMcCluskey.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

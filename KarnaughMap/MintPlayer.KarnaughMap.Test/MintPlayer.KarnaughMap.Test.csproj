@@ -10,6 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\QuineMcCluskey\MintPlayer.QuineMcCluskey\MintPlayer.QuineMcCluskey.csproj" />
 	  <ProjectReference Include="..\MintPlayer.KarnaughMap\MintPlayer.KarnaughMap.csproj" />
 	</ItemGroup>
 

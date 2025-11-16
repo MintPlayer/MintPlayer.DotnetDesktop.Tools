@@ -1,28 +1,26 @@
-﻿using QuineMcCluskey.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using MintPlayer.QuineMcCluskey;
 
-namespace QuineMcCluskey.Test
+namespace QuineMcCluskey.Test;
+
+class Program
 {
-    class Program
+    static async Task Main(string[] args)
     {
-        static void Main(string[] args)
+        var random = new Random();
+        var list = new List<int>();
+        for (int i = 0; i < 16; i++)
         {
-            var random = new Random();
-            var list = new List<int>();
-            for (int i = 0; i < 16; i++)
-            {
-                var num = random.Next(16);
-                if (!list.Contains(num)) list.Add(num);
-            }
+            var num = random.Next(16);
+            if (!list.Contains(num)) list.Add(num);
+        }
 
-            while (true)
-            {
-                var loops = QuineMcCluskeySolver.QMC_Solve(list, new int[] { });
+        var solver = new QuineMcCluskeySolver();
 
-                Console.ReadKey();
-            }
+        while (true)
+        {
+            var loops = await solver.QMC_Solve(list, new int[] { });
+
+            Console.ReadKey();
         }
     }
 }

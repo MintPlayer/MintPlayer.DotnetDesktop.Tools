@@ -1,6 +1,5 @@
-﻿using KarnaughMap.Events.EventArgs;
+﻿using MintPlayer.KarnaughMap.Events.EventArgs;
 
-namespace KarnaughMap.Events.EventHandlers
-{
-    public delegate void ModeChangingEventHandler(object sender, ModeChangingEventArgs e);
-}
+namespace MintPlayer.KarnaughMap.Events.EventHandlers;
+
+public delegate void ModeChangingEventHandler(object sender, ModeChangingEventArgs e);
