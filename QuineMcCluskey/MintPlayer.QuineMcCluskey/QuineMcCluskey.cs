@@ -1,6 +1,9 @@
 ﻿using MintPlayer.QuineMcCluskey.Abstractions;
-using Table1 = QuineMcCluskey.Data.QuineMcCluskey.Table1.Table;
-using Table2 = QuineMcCluskey.Data.QuineMcCluskey.Table2.Table;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Table1 = MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table1.Table;
+using Table2 = MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table2.Table;
+using MintPlayer.QuineMcCluskey.Enums;
 
 namespace MintPlayer.QuineMcCluskey;
 
@@ -48,9 +51,9 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
                 {
                     switch (b)
                     {
-                        case '0': return LogicState.False;
-                        case '1': return LogicState.True;
-                        default: return LogicState.DontCare;
+                        case '0': return ELogicState.False;
+                        case '1': return ELogicState.True;
+                        default: return ELogicState.DontCare;
                     }
                 }),
                 m.Decimal
@@ -67,7 +70,7 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
         foreach (var minterm in bin_minterms_padded)
             table
                 .Columns[0]
-                .Groups[minterm.Binary.Count(n => n == LogicState.True)]
+                .Groups[minterm.Binary.Count(n => n == ELogicState.True)]
                 .Records.Add(new Data.QuineMcCluskey.Table1.Loop(new[] { minterm.Decimal }, minterm.Binary.ToArray()));
 
         return table;
@@ -181,7 +184,7 @@ public class QuineMcCluskeySolver : IQuineMcCluskeySolver
         // Tie-breaker: minimal literal count.
         int LiteralCount(HashSet<Data.QuineMcCluskey.Table2.Row> set)
         {
-            return set.Sum(r => r.Loop.Data.Count(d => d != LogicState.DontCare));
+            return set.Sum(r => r.Loop.Data.Count(d => d != ELogicState.DontCare));
         }
         int minLiteralCount = minimalProducts.Min(p => LiteralCount(p));
         var chosen = minimalProducts.First(p => LiteralCount(p) == minLiteralCount);

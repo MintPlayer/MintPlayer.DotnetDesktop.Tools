@@ -1,6 +1,6 @@
 ﻿namespace MintPlayer.QuineMcCluskey.Enums;
 
-public enum LogicState
+public enum ELogicState
 {
     False,
     True,

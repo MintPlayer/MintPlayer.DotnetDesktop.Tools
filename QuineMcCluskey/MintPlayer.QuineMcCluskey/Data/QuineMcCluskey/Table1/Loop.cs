@@ -1,14 +1,16 @@
-﻿namespace MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table1;
+﻿using MintPlayer.QuineMcCluskey.Enums;
+
+namespace MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table1;
 
 internal class Loop
 {
-    public Loop(int[] minTerms, LogicState[] data)
+    public Loop(int[] minTerms, ELogicState[] data)
     {
         MinTerms = minTerms;
         Data = data;
     }
 
-    public LogicState[] Data { get; set; }
+    public ELogicState[] Data { get; set; }
     public bool Used { get; set; }
     public int[] MinTerms { get; private set; }
 
@@ -18,8 +20,8 @@ internal class Loop
         {
             switch (d)
             {
-                case LogicState.False: return '0';
-                case LogicState.True: return '1';
+                case ELogicState.False: return '0';
+                case ELogicState.True: return '1';
                 default: return 'X';
             }
         }).ToArray());
@@ -34,9 +36,9 @@ internal class Loop
             {
                 switch (Data[t])
                 {
-                    case LogicState.False:
+                    case ELogicState.False:
                         return $"{v}!";
-                    case LogicState.True:
+                    case ELogicState.True:
                         return v;
                     default:
                         return string.Empty;
@@ -51,15 +53,15 @@ internal class Loop
 
     internal static Loop CompareItems(Loop item1, Loop item2)
     {
-        var result = new List<LogicState>();
+        var result = new List<ELogicState>();
         var differences = 0;
         for (int m = 0; m < item1.Data.Length; m++)
         {
-            if ((item1.Data[m] == LogicState.DontCare) ^ (item2.Data[m] == LogicState.DontCare)) return null;
+            if ((item1.Data[m] == ELogicState.DontCare) ^ (item2.Data[m] == ELogicState.DontCare)) return null;
 
             if (item1.Data[m] == item2.Data[m]) result.Add(item1.Data[m]);
             else if (++differences > 1) return null;
-            else result.Add(LogicState.DontCare);
+            else result.Add(ELogicState.DontCare);
         }
 
         return new Loop(item1.MinTerms.Union(item2.MinTerms).ToArray(), result.ToArray());

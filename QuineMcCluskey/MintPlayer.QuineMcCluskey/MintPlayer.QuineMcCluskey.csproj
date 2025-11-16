@@ -19,8 +19,8 @@
 		<Version>1.0.0</Version>
 	</PropertyGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 		<ProjectReference Include="..\MintPlayer.QuineMcCluskey.Abstractions\MintPlayer.QuineMcCluskey.Abstractions.csproj" />
-	</ItemGroup>
+	</ItemGroup>-->
 
 </Project>

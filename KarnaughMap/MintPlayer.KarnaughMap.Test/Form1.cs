@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MintPlayer.QuineMcCluskey;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
@@ -27,19 +28,19 @@ namespace KarnaughMap.Test
             await karnaughMap1.SolveSelection();
         }
 
-        private List<QuineMcCluskey.RequiredLoop> loopsOnes;
-        private List<QuineMcCluskey.RequiredLoop> loopsZeros;
+        private List<RequiredLoop> loopsOnes;
+        private List<RequiredLoop> loopsZeros;
 
         private void KarnaughMap1_KarnaughLoopAdded(object sender, Events.EventArgs.KarnaughLoopAddedEventArgs e)
         {
             if (loopsOnes == null)
             {
-                loopsOnes = new List<QuineMcCluskey.RequiredLoop>();
+                loopsOnes = new List<RequiredLoop>();
             }
 
             if (loopsZeros == null)
             {
-                loopsZeros = new List<QuineMcCluskey.RequiredLoop>();
+                loopsZeros = new List<RequiredLoop>();
             }
 
             if (e.Value)

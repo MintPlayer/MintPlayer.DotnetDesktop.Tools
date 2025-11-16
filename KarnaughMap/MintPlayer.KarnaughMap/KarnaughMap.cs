@@ -1,4 +1,5 @@
 ﻿using MintPlayer.KarnaughMap.Events.EventArgs;
+using MintPlayer.KarnaughMap.Events.EventHandlers;
 using MintPlayer.KarnaughMap.Exceptions;
 using MintPlayer.KarnaughMap.Helpers;
 using System.ComponentModel;
