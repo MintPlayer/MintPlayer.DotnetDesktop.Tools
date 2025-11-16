@@ -1,9 +1,7 @@
 ﻿using MintPlayer.QuineMcCluskey.Abstractions;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using MintPlayer.QuineMcCluskey.Enums;
 using Table1 = MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table1.Table;
 using Table2 = MintPlayer.QuineMcCluskey.Data.QuineMcCluskey.Table2.Table;
-using MintPlayer.QuineMcCluskey.Enums;
 
 namespace MintPlayer.QuineMcCluskey;
 
