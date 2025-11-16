@@ -35,7 +35,16 @@ internal class KarnaughMapSerializer : global::Microsoft.DotNet.DesignTools.Seri
                     )
                 )
             );
-
+            // Serialize OutputVariable if provided
+            if (!string.IsNullOrEmpty(karnaughMap.OutputVariable))
+            {
+                statements.Add(
+                    new CodeAssignStatement(
+                        new CodePropertyReferenceExpression(targetObject, "OutputVariable"),
+                        new CodePrimitiveExpression(karnaughMap.OutputVariable)
+                    )
+                );
+            }
         }
         return statements;
     }

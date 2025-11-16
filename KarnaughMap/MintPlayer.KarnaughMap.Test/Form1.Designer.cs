@@ -39,15 +39,15 @@
             // 
             // karnaughMap1
             // 
-            karnaughMap1.Location = new System.Drawing.Point(250, 51);
+            karnaughMap1.Location = new System.Drawing.Point(226, 50);
             karnaughMap1.Name = "karnaughMap1";
-            this.karnaughMap1.OutputVariable = "X";
-            karnaughMap1.Size = new System.Drawing.Size(697, 377);
+            karnaughMap1.Size = new System.Drawing.Size(377, 377);
             karnaughMap1.TabIndex = 0;
             karnaughMap1.KarnaughMapSolved += KarnaughMap1_KarnaughMapSolved;
             karnaughMap1.KarnaughLoopAdded += KarnaughMap1_KarnaughLoopAdded;
             karnaughMap1.ModeChanging += KarnaughMap1_ModeChanging;
-            karnaughMap1.InputVariables.AddRange(new string[] { "A", "B", "C", "D", "E", "F", "G" });
+            karnaughMap1.InputVariables.AddRange(new string[] { "A", "B", "C", "D", "E", "F" });
+            karnaughMap1.OutputVariable = "Y";
             // 
             // btnRandomFill
             // 
