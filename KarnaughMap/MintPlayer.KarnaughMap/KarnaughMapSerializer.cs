@@ -25,20 +25,16 @@ internal class KarnaughMapSerializer : global::Microsoft.DotNet.DesignTools.Seri
         if (statements != null)
         {
             var targetObject = base.GetExpression(manager, value);
-
-            foreach (var input in karnaughMap.InputVariables)
-            {
-                statements.Add(
-                    new CodeMethodInvokeExpression(
-                        new CodePropertyReferenceExpression(targetObject, "InputVariables"),
-                        "AddRange",
-                        new CodeArrayCreateExpression(
-                            new CodeTypeReference(typeof(string)),
-                            karnaughMap.InputVariables.Select(i => new CodePrimitiveExpression(i)).ToArray()
-                        )
+            statements.Add(
+                new CodeMethodInvokeExpression(
+                    new CodePropertyReferenceExpression(targetObject, "InputVariables"),
+                    "AddRange",
+                    new CodeArrayCreateExpression(
+                        new CodeTypeReference(typeof(string)),
+                        karnaughMap.InputVariables.Select(i => new CodePrimitiveExpression(i)).ToArray()
                     )
-                );
-            }
+                )
+            );
 
         }
         return statements;

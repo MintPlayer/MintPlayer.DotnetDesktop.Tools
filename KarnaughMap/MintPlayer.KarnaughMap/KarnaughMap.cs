@@ -17,13 +17,11 @@ public partial class KarnaughMap : UserControl
         InitializeComponent();
         DoubleBuffered = true;
 
-        if (LicenseManager.UsageMode == LicenseUsageMode.Runtime)
-        {
-            InputVariables = new ObservableCollection.ObservableCollection<string>();
-            InputVariables.CollectionChanged += InputVariables_CollectionChanged;
-            loops_ones = new ObservableCollection.ObservableCollection<IRequiredLoop>();
-            loops_zeros = new ObservableCollection.ObservableCollection<IRequiredLoop>();
-        }
+        //if (LicenseManager.UsageMode == LicenseUsageMode.Runtime)
+        InputVariables = new ObservableCollection.ObservableCollection<string>();
+        InputVariables.CollectionChanged += InputVariables_CollectionChanged;
+        loops_ones = new ObservableCollection.ObservableCollection<IRequiredLoop>();
+        loops_zeros = new ObservableCollection.ObservableCollection<IRequiredLoop>();
 
         EventHandler invalidateDelegate = (sender, e) => Invalidate();
         GotFocus += invalidateDelegate;
