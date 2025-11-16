@@ -3,11 +3,11 @@ using System.ComponentModel.Design.Serialization;
 
 namespace MintPlayer.KarnaughMap;
 
-internal class KarnaughMapSerializer : CodeDomSerializer
+internal class KarnaughMapSerializer : global::Microsoft.DotNet.DesignTools.Serialization.CodeDomSerializer
 {
     public override object Serialize(IDesignerSerializationManager manager, object value)
     {
-        var userControlSerializer = manager.GetSerializer(typeof(KarnaughMap).BaseType, typeof(CodeDomSerializer)) as CodeDomSerializer;
+        var userControlSerializer = manager.GetSerializer(typeof(KarnaughMap).BaseType, typeof(global::Microsoft.DotNet.DesignTools.Serialization.CodeDomSerializer)) as global::Microsoft.DotNet.DesignTools.Serialization.CodeDomSerializer;
         if (userControlSerializer == null)
             MessageBox.Show("userControlSerializer == null");
 

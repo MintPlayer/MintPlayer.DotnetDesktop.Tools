@@ -22,6 +22,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.WinForms.Designer.SDK" Version="1.6.0" />
 		<PackageReference Include="MintPlayer.ObservableCollection" Version="7.0.1" />
 	</ItemGroup>
 

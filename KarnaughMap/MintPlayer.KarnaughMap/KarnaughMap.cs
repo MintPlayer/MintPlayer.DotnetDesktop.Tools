@@ -9,7 +9,7 @@ using System.ComponentModel.Design.Serialization;
 namespace MintPlayer.KarnaughMap;
 
 [ToolboxItem(true)]
-[DesignerSerializer(typeof(KarnaughMapSerializer), typeof(CodeDomSerializer))]
+[DesignerSerializer(typeof(KarnaughMapSerializer), typeof(global::Microsoft.DotNet.DesignTools.Serialization.CodeDomSerializer))]
 public partial class KarnaughMap : UserControl
 {
     public KarnaughMap()

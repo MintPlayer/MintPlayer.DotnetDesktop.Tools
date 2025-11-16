@@ -40,7 +40,6 @@
             // karnaughMap1
             // 
             this.karnaughMap1.Location = new System.Drawing.Point(250, 51);
-            this.karnaughMap1.Size = new System.Drawing.Size(100, 100);
             this.karnaughMap1.Name = "karnaughMap1";
             this.karnaughMap1.OutputVariable = "X";
             this.karnaughMap1.TabIndex = 0;
