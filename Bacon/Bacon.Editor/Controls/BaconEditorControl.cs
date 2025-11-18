@@ -85,6 +85,10 @@ public class BaconEditorControl : UserControl
     private const double zoomMin = 0.25;
     private const double zoomMax = 8.0;
     private const double zoomStep = 0.1;
+    private int lastDxModelTotal;
+    private int lastDyModelTotal;
+    private Point initialMouseView;
+    private List<Point>? initialShapeControlPoints; // initial control points for drag
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public double Zoom
@@ -112,10 +116,12 @@ public class BaconEditorControl : UserControl
         using (var borderPen = new Pen(Color.SteelBlue))
             e.Graphics.DrawRectangle(borderPen, new Rectangle(0, 0, imgWidth - 1, imgHeight - 1));
 
-        e.Graphics.TranslateTransform(0, 0);
+        // Draw layers directly so shapes/glyphs outside bounds remain visible
         e.Graphics.ScaleTransform((float)zoom, (float)zoom);
-        using var bmp = currentImage.Render();
-        e.Graphics.DrawImage(bmp, 0, 0);
+        foreach (var layer in currentImage.Layers.Where(l => l.Visible))
+        {
+            layer.Draw(e.Graphics);
+        }
     }
 
     private void CanvasPanel_MouseDown(object? sender, MouseEventArgs e)
@@ -136,14 +142,26 @@ public class BaconEditorControl : UserControl
                         var r = new Rectangle(cp.pt.X - 4, cp.pt.Y - 4, 8, 8);
                         if (r.Contains(modelPoint))
                         {
-                            dragShape = shape; dragControlPointIndex = cp.idx; dragging = true; dragOffset = e.Location; shape.Selected = true; canvasPanel.Invalidate(); return;
+                        dragShape = shape;
+                        dragControlPointIndex = cp.idx;
+                        dragging = true;
+                        dragOffset = e.Location; // legacy offset (kept for whole-shape drag)
+                        initialMouseView = e.Location;
+                        initialShapeControlPoints = shape.GetControlPoints().ToList();
+                        lastDxModelTotal = 0; lastDyModelTotal = 0;
+                        shape.Selected = true;
+                        canvasPanel.Invalidate();
+                        return;
                         }
                     }
                     if (shape.HitTest(modelPoint))
                     {
                         dragShape = shape;
                         dragging = true;
-                        dragOffset = e.Location;
+                        dragOffset = e.Location; // legacy
+                        initialMouseView = e.Location;
+                        initialShapeControlPoints = shape.GetControlPoints().ToList();
+                        lastDxModelTotal = 0; lastDyModelTotal = 0;
                         dragControlPointIndex = -1;
                         shape.Selected = true;
                         return;
@@ -156,21 +174,31 @@ public class BaconEditorControl : UserControl
     private void CanvasPanel_MouseMove(object? sender, MouseEventArgs e)
     {
         if (!dragging || dragShape is null) return;
-        var dxView = e.X - dragOffset.X;
-        var dyView = e.Y - dragOffset.Y;
-        var dx = (int)Math.Round(dxView / zoom);
-        var dy = (int)Math.Round(dyView / zoom);
-        if (dragControlPointIndex >= 0)
+        var dxViewTotal = e.X - initialMouseView.X;
+        var dyViewTotal = e.Y - initialMouseView.Y;
+        var dxModelTotal = (int)Math.Round(dxViewTotal / zoom);
+        var dyModelTotal = (int)Math.Round(dyViewTotal / zoom);
+        // Only update if movement changed to reduce flicker
+        if (dxModelTotal != lastDxModelTotal || dyModelTotal != lastDyModelTotal)
         {
-            var cp = dragShape.GetControlPoints().ElementAt(dragControlPointIndex);
-            dragShape.SetControlPoint(dragControlPointIndex, new Point(cp.X + dx, cp.Y + dy));
+            if (dragControlPointIndex >= 0 && initialShapeControlPoints is not null)
+            {
+                var original = initialShapeControlPoints[dragControlPointIndex];
+                dragShape.SetControlPoint(dragControlPointIndex, new Point(original.X + dxModelTotal, original.Y + dyModelTotal));
+            }
+            else if (initialShapeControlPoints is not null)
+            {
+                // Move all control points relative to initial positions
+                for (int i = 0; i < initialShapeControlPoints.Count; i++)
+                {
+                    var orig = initialShapeControlPoints[i];
+                    dragShape.SetControlPoint(i, new Point(orig.X + dxModelTotal, orig.Y + dyModelTotal));
+                }
+            }
+            lastDxModelTotal = dxModelTotal;
+            lastDyModelTotal = dyModelTotal;
+            canvasPanel.Invalidate();
         }
-        else
-        {
-            dragShape.Offset(dx, dy);
-        }
-        dragOffset = e.Location;
-        canvasPanel.Invalidate();
     }
 
     private void CanvasPanel_MouseUp(object? sender, MouseEventArgs e)
@@ -178,6 +206,7 @@ public class BaconEditorControl : UserControl
         dragging = false;
         dragShape = null;
         dragControlPointIndex = -1;
+        initialShapeControlPoints = null;
     }
 
     protected override void OnMouseWheel(MouseEventArgs e)
