@@ -1,10 +1,6 @@
-using System.ComponentModel;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Linq;
-using MintPlayer.Bacon; // Bacon, BaconImage
 using MintPlayer.Bacon.Layers; // Layers
 using MintPlayer.Bacon.Shapes; // Shapes
+using System.ComponentModel;
 
 namespace MintPlayer.Bacon.Editor.Controls;
 
@@ -85,11 +81,39 @@ public class BaconEditorControl : UserControl
     private BaconShape? dragShape;
     private Point dragOffset;
     private int dragControlPointIndex = -1;
+    private double zoom = 1.0;
+    private const double zoomMin = 0.25;
+    private const double zoomMax = 8.0;
+    private const double zoomStep = 0.1;
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public double Zoom
+    {
+        get => zoom;
+        set
+        {
+            zoom = Math.Max(zoomMin, Math.Min(zoomMax, value));
+            canvasPanel.Invalidate();
+        }
+    }
 
     private void CanvasPanel_Paint(object? sender, PaintEventArgs e)
     {
         e.Graphics.Clear(SystemColors.Window);
         if (currentImage is null) return;
+
+        // Draw tinted background for image boundary
+        var imgWidth = (int)(currentImage.Width * zoom);
+        var imgHeight = (int)(currentImage.Height * zoom);
+        using (var bgBrush = new SolidBrush(Color.FromArgb(235, 240, 250)))
+            e.Graphics.FillRectangle(bgBrush, new Rectangle(0, 0, imgWidth, imgHeight));
+        using (var hatch = new System.Drawing.Drawing2D.HatchBrush(System.Drawing.Drawing2D.HatchStyle.LightDownwardDiagonal, Color.FromArgb(220, 230, 240), Color.FromArgb(235, 240, 250)))
+            e.Graphics.FillRectangle(hatch, new Rectangle(0, 0, imgWidth, imgHeight));
+        using (var borderPen = new Pen(Color.SteelBlue))
+            e.Graphics.DrawRectangle(borderPen, new Rectangle(0, 0, imgWidth - 1, imgHeight - 1));
+
+        e.Graphics.TranslateTransform(0, 0);
+        e.Graphics.ScaleTransform((float)zoom, (float)zoom);
         using var bmp = currentImage.Render();
         e.Graphics.DrawImage(bmp, 0, 0);
     }
@@ -97,6 +121,7 @@ public class BaconEditorControl : UserControl
     private void CanvasPanel_MouseDown(object? sender, MouseEventArgs e)
     {
         if (currentImage is null) return;
+        var modelPoint = new Point((int)Math.Round(e.Location.X / zoom), (int)Math.Round(e.Location.Y / zoom));
         foreach (var layer in currentImage.Layers)
         {
             if (!layer.Visible) continue;
@@ -109,12 +134,12 @@ public class BaconEditorControl : UserControl
                     foreach (var cp in cps)
                     {
                         var r = new Rectangle(cp.pt.X - 4, cp.pt.Y - 4, 8, 8);
-                        if (r.Contains(e.Location))
+                        if (r.Contains(modelPoint))
                         {
                             dragShape = shape; dragControlPointIndex = cp.idx; dragging = true; dragOffset = e.Location; shape.Selected = true; canvasPanel.Invalidate(); return;
                         }
                     }
-                    if (shape.HitTest(e.Location))
+                    if (shape.HitTest(modelPoint))
                     {
                         dragShape = shape;
                         dragging = true;
@@ -131,8 +156,10 @@ public class BaconEditorControl : UserControl
     private void CanvasPanel_MouseMove(object? sender, MouseEventArgs e)
     {
         if (!dragging || dragShape is null) return;
-        var dx = e.X - dragOffset.X;
-        var dy = e.Y - dragOffset.Y;
+        var dxView = e.X - dragOffset.X;
+        var dyView = e.Y - dragOffset.Y;
+        var dx = (int)Math.Round(dxView / zoom);
+        var dy = (int)Math.Round(dyView / zoom);
         if (dragControlPointIndex >= 0)
         {
             var cp = dragShape.GetControlPoints().ElementAt(dragControlPointIndex);
@@ -151,5 +178,16 @@ public class BaconEditorControl : UserControl
         dragging = false;
         dragShape = null;
         dragControlPointIndex = -1;
+    }
+
+    protected override void OnMouseWheel(MouseEventArgs e)
+    {
+        base.OnMouseWheel(e);
+        if ((ModifierKeys & Keys.Control) == Keys.Control)
+        {
+            double oldZoom = zoom;
+            if (e.Delta > 0) Zoom += zoomStep; else Zoom -= zoomStep;
+            // Optional: keep point under cursor stable (pan not implemented yet)
+        }
     }
 }
