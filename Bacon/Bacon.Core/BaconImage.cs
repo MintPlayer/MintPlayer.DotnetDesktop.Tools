@@ -8,7 +8,7 @@ public class BaconImage
     public int Width { get; set; }
     public int Height { get; set; }
 
-    public MintPlayer.ObservableCollection.ObservableCollection<BaconLayer> Layers { get; } = new();
+    public ObservableCollection.ObservableCollection<BaconLayer> Layers { get; } = new();
 
     public Bitmap Render()
     {

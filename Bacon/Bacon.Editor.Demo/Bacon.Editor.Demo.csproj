@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+		<OutputType>WinExe</OutputType>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<IsPackable>false</IsPackable>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AssemblyName>MintPlayer.Bacon.Editor.Demo</AssemblyName>
+		<RootNamespace>MintPlayer.Bacon.Editor.Demo</RootNamespace>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Bacon.Editor\Bacon.Editor.csproj" />
+		<ProjectReference Include="..\Bacon.Core\Bacon.Core.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,6 +1,10 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Linq;
+using MintPlayer.Bacon; // Bacon, BaconImage
+using MintPlayer.Bacon.Layers; // Layers
+using MintPlayer.Bacon.Shapes; // Shapes
 
 namespace MintPlayer.Bacon.Editor.Controls;
 
@@ -9,8 +13,8 @@ public class BaconEditorControl : UserControl
     private ListBox lbImages = new();
     private Panel canvasPanel = new();
     private CheckedListBox clbLayers = new();
-    private Bacon.Bacon? bacon;
-    private Bacon.BaconImage? currentImage;
+    private Bacon? bacon;
+    private BaconImage? currentImage;
 
     public BaconEditorControl()
     {
@@ -23,7 +27,7 @@ public class BaconEditorControl : UserControl
         clbLayers.Width = 150;
         clbLayers.ItemCheck += (s, e) =>
         {
-            if (currentImage == null) return;
+            if (currentImage is null) return;
             var layer = currentImage.Layers[e.Index];
             layer.Visible = e.NewValue == CheckState.Checked;
             canvasPanel.Invalidate();
@@ -41,14 +45,14 @@ public class BaconEditorControl : UserControl
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public Bacon.Bacon? Bacon
+    public Bacon? Bacon
     {
         get => bacon;
         set
         {
             bacon = value;
             lbImages.Items.Clear();
-            if (bacon != null)
+            if (bacon is not null)
             {
                 foreach (var img in bacon.Images)
                 {
@@ -61,7 +65,7 @@ public class BaconEditorControl : UserControl
 
     private void SelectImage(int index)
     {
-        if (bacon == null || index < 0 || index >= bacon.Images.Count)
+        if (bacon is null || index < 0 || index >= bacon.Images.Count)
         {
             currentImage = null;
             clbLayers.Items.Clear();
@@ -78,25 +82,25 @@ public class BaconEditorControl : UserControl
     }
 
     private bool dragging;
-    private Bacon.Shapes.BaconShape? dragShape;
+    private BaconShape? dragShape;
     private Point dragOffset;
     private int dragControlPointIndex = -1;
 
     private void CanvasPanel_Paint(object? sender, PaintEventArgs e)
     {
         e.Graphics.Clear(SystemColors.Window);
-        if (currentImage == null) return;
+        if (currentImage is null) return;
         using var bmp = currentImage.Render();
         e.Graphics.DrawImage(bmp, 0, 0);
     }
 
     private void CanvasPanel_MouseDown(object? sender, MouseEventArgs e)
     {
-        if (currentImage == null) return;
+        if (currentImage is null) return;
         foreach (var layer in currentImage.Layers)
         {
             if (!layer.Visible) continue;
-            if (layer is Bacon.Layers.BaconShapeLayer sl)
+            if (layer is BaconShapeLayer sl)
             {
                 foreach (var shape in sl.Shapes)
                 {
@@ -126,7 +130,7 @@ public class BaconEditorControl : UserControl
 
     private void CanvasPanel_MouseMove(object? sender, MouseEventArgs e)
     {
-        if (!dragging || dragShape == null) return;
+        if (!dragging || dragShape is null) return;
         var dx = e.X - dragOffset.X;
         var dy = e.Y - dragOffset.Y;
         if (dragControlPointIndex >= 0)

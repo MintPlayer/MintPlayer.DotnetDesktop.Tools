@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bacon.Core", "Bacon\Bacon.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bacon.Editor", "Bacon\Bacon.Editor\Bacon.Editor.csproj", "{897A8E2F-6D6D-2133-07DA-91098D84DFDE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bacon.Editor.Demo", "Bacon\Bacon.Editor.Demo\Bacon.Editor.Demo.csproj", "{45553D1E-22C2-FEF8-8BC1-C67F2759C53B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,10 @@ Global
 		{897A8E2F-6D6D-2133-07DA-91098D84DFDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{897A8E2F-6D6D-2133-07DA-91098D84DFDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{897A8E2F-6D6D-2133-07DA-91098D84DFDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45553D1E-22C2-FEF8-8BC1-C67F2759C53B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45553D1E-22C2-FEF8-8BC1-C67F2759C53B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45553D1E-22C2-FEF8-8BC1-C67F2759C53B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45553D1E-22C2-FEF8-8BC1-C67F2759C53B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,6 +125,7 @@ Global
 		{BB760A95-2A4D-E106-51BB-37F79BF0B1A0} = {DD5C43CD-677F-4CD8-9A1E-B987C25C1AC0}
 		{05943C2A-0842-15E6-BB5D-08EE785D5C62} = {CC923FB4-E260-46AE-8347-1B703EB33A1F}
 		{897A8E2F-6D6D-2133-07DA-91098D84DFDE} = {CC923FB4-E260-46AE-8347-1B703EB33A1F}
+		{45553D1E-22C2-FEF8-8BC1-C67F2759C53B} = {CC923FB4-E260-46AE-8347-1B703EB33A1F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ECD70619-E5DD-42D8-8F79-660C4A084B3F}
