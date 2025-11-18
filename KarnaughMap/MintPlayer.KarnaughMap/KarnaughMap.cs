@@ -9,6 +9,7 @@ using System.ComponentModel.Design.Serialization;
 namespace MintPlayer.KarnaughMap;
 
 [ToolboxItem(true)]
+[Designer(typeof(KarnaughMapDesigner))]
 [DesignerSerializer(typeof(KarnaughMapSerializer), typeof(global::Microsoft.DotNet.DesignTools.Serialization.CodeDomSerializer))]
 public partial class KarnaughMap : UserControl
 {
@@ -34,7 +35,7 @@ public partial class KarnaughMap : UserControl
     public IQuineMcCluskeySolver Solver { get => solver; set => solver = value; }
 
     #region Constants
-    const int gridSize = 40;
+    internal const int gridSize = 40;
     #endregion
     #region Private fields
     private string[] varsX;
