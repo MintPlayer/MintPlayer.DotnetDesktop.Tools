@@ -4,10 +4,23 @@ using System.ComponentModel;
 
 namespace MintPlayer.Bacon.Editor.Controls;
 
+internal class DoubleBufferedPanel : Panel
+{
+    public DoubleBufferedPanel()
+    {
+        this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+        this.UpdateStyles();
+    }
+    protected override void OnPaintBackground(PaintEventArgs pevent)
+    {
+        // Suppress default background paint to reduce flicker
+    }
+}
+
 public class BaconEditorControl : UserControl
 {
     private ListBox lbImages = new();
-    private Panel canvasPanel = new();
+    private DoubleBufferedPanel canvasPanel = new();
     private CheckedListBox clbLayers = new();
     private Bacon? bacon;
     private BaconImage? currentImage;
@@ -103,25 +116,26 @@ public class BaconEditorControl : UserControl
 
     private void CanvasPanel_Paint(object? sender, PaintEventArgs e)
     {
-        e.Graphics.Clear(SystemColors.Window);
-        if (currentImage is null) return;
-
-        // Draw tinted background for image boundary
-        var imgWidth = (int)(currentImage.Width * zoom);
-        var imgHeight = (int)(currentImage.Height * zoom);
-        using (var bgBrush = new SolidBrush(Color.FromArgb(235, 240, 250)))
-            e.Graphics.FillRectangle(bgBrush, new Rectangle(0, 0, imgWidth, imgHeight));
-        using (var hatch = new System.Drawing.Drawing2D.HatchBrush(System.Drawing.Drawing2D.HatchStyle.LightDownwardDiagonal, Color.FromArgb(220, 230, 240), Color.FromArgb(235, 240, 250)))
-            e.Graphics.FillRectangle(hatch, new Rectangle(0, 0, imgWidth, imgHeight));
-        using (var borderPen = new Pen(Color.SteelBlue))
-            e.Graphics.DrawRectangle(borderPen, new Rectangle(0, 0, imgWidth - 1, imgHeight - 1));
-
-        // Draw layers directly so shapes/glyphs outside bounds remain visible
-        e.Graphics.ScaleTransform((float)zoom, (float)zoom);
-        foreach (var layer in currentImage.Layers.Where(l => l.Visible))
+        if (canvasPanel.Width <= 0 || canvasPanel.Height <= 0) return;
+        using var backBuffer = new Bitmap(canvasPanel.Width, canvasPanel.Height);
+        using var g = Graphics.FromImage(backBuffer);
+        g.Clear(SystemColors.Window);
+        if (currentImage is not null)
         {
-            layer.Draw(e.Graphics);
+            var imgWidth = (int)(currentImage.Width * zoom);
+            var imgHeight = (int)(currentImage.Height * zoom);
+            using (var bgBrush = new SolidBrush(Color.FromArgb(235, 240, 250)))
+                g.FillRectangle(bgBrush, new Rectangle(0, 0, imgWidth, imgHeight));
+            using (var hatch = new System.Drawing.Drawing2D.HatchBrush(System.Drawing.Drawing2D.HatchStyle.LightDownwardDiagonal, Color.FromArgb(220, 230, 240), Color.FromArgb(235, 240, 250)))
+                g.FillRectangle(hatch, new Rectangle(0, 0, imgWidth, imgHeight));
+            using (var borderPen = new Pen(Color.SteelBlue))
+                g.DrawRectangle(borderPen, new Rectangle(0, 0, imgWidth - 1, imgHeight - 1));
+
+            g.ScaleTransform((float)zoom, (float)zoom);
+            foreach (var layer in currentImage.Layers.Where(l => l.Visible))
+                layer.Draw(g);
         }
+        e.Graphics.DrawImageUnscaled(backBuffer, Point.Empty);
     }
 
     private void CanvasPanel_MouseDown(object? sender, MouseEventArgs e)
