@@ -289,8 +289,9 @@ internal class ImageCanvas : UserControl
     private void DrawMoveHandle(Graphics g, RectangleF shapeBounds)
     {
         var handleSize = MoveHandleSize / _zoom;
-        var handleX = shapeBounds.Right - handleSize / 2;
-        var handleY = shapeBounds.Top - handleSize / 2;
+        var offset = 20 / _zoom;
+        var handleX = shapeBounds.Right + offset - handleSize / 2;
+        var handleY = shapeBounds.Top - offset - handleSize / 2;
         var handleRect = new RectangleF(handleX, handleY, handleSize, handleSize);
 
         var color = _isHoveringMoveHandle ? MoveHandleHoverColor : MoveHandleColor;
@@ -331,8 +332,9 @@ internal class ImageCanvas : UserControl
     private RectangleF GetMoveHandleRect(RectangleF shapeBounds)
     {
         var handleSize = MoveHandleSize / _zoom;
-        var handleX = shapeBounds.Right - handleSize / 2;
-        var handleY = shapeBounds.Top - handleSize / 2;
+        var offset = 20 / _zoom;
+        var handleX = shapeBounds.Right + offset - handleSize / 2;
+        var handleY = shapeBounds.Top - offset - handleSize / 2;
         return new RectangleF(handleX, handleY, handleSize, handleSize);
     }
 
