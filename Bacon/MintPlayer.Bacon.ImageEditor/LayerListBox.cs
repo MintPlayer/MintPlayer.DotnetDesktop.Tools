@@ -20,6 +20,7 @@ public class LayerListBox : ListBox
         DrawMode = DrawMode.OwnerDrawFixed;
         ItemHeight = IconSize + ItemPadding * 2;
         IntegralHeight = false;
+        DoubleBuffered = true;
     }
 
     protected override void OnDrawItem(DrawItemEventArgs e)

@@ -115,6 +115,8 @@ public class BaconImageEditor : UserControl
 
     public BaconImageEditor()
     {
+        DoubleBuffered = true;
+
         MinimumSize = new Size(400, 300);
         Size = new Size(600, 400);
 

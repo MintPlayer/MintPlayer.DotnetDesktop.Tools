@@ -22,6 +22,7 @@ public class ImageThumbnailListBox : ListBox
         DrawMode = DrawMode.OwnerDrawFixed;
         ItemHeight = ThumbnailSize + ItemPadding * 2;
         IntegralHeight = false;
+        DoubleBuffered = true;
     }
 
     protected override void OnDrawItem(DrawItemEventArgs e)

@@ -286,7 +286,7 @@ internal class ImageCanvas : UserControl
             var dy = e.Y - _lastMousePos.Y;
             _panOffset = new PointF(_panOffset.X + dx, _panOffset.Y + dy);
             _lastMousePos = e.Location;
-            Invalidate();
+            Refresh(); // Use Refresh() for immediate repaint while dragging
             return;
         }
 
@@ -295,7 +295,7 @@ internal class ImageCanvas : UserControl
             var imagePoint = ScreenToImage(e.Location);
             _selectedShape.SetControlPoint(_selectedControlPointIndex, imagePoint);
             _lastMousePos = e.Location;
-            Invalidate();
+            Refresh(); // Use Refresh() for immediate repaint while dragging
             ImageModified?.Invoke(this, EventArgs.Empty);
             return;
         }
@@ -349,7 +349,7 @@ internal class ImageCanvas : UserControl
             var dy = (mouseImagePosAfter.Y - mouseImagePosBefore.Y) * _zoom;
             _panOffset = new PointF(_panOffset.X + dx, _panOffset.Y + dy);
 
-            Invalidate();
+            Refresh(); // Use Refresh() for immediate repaint while zooming
         }
     }
 

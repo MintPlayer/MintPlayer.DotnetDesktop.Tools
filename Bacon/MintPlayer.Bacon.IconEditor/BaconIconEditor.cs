@@ -76,6 +76,8 @@ public class BaconIconEditor : UserControl
 
     public BaconIconEditor()
     {
+        DoubleBuffered = true;
+
         // Set a minimum size to ensure the split container has enough space
         MinimumSize = new Size(400, 300);
         Size = new Size(600, 400);
