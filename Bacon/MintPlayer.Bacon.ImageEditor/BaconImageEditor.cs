@@ -286,6 +286,7 @@ public class BaconImageEditor : UserControl
         var toggleVisibilityItem = new ToolStripMenuItem("Toggle Visibility", null, OnToggleVisibility);
         var toggleLockItem = new ToolStripMenuItem("Toggle Lock", null, OnToggleLock);
         var renameItem = new ToolStripMenuItem("Rename...", null, OnRename);
+        var propertiesItem = new ToolStripMenuItem("Properties...", null, OnShowProperties);
 
         contextMenu.Opening += (s, e) =>
         {
@@ -306,6 +307,7 @@ public class BaconImageEditor : UserControl
             toggleVisibilityItem.Enabled = hasSelection;
             toggleLockItem.Enabled = hasSelection;
             renameItem.Enabled = hasSelection;
+            propertiesItem.Enabled = isShape;
         };
 
         contextMenu.Items.AddRange(new ToolStripItem[]
@@ -322,7 +324,9 @@ public class BaconImageEditor : UserControl
             new ToolStripSeparator(),
             toggleVisibilityItem,
             toggleLockItem,
-            renameItem
+            renameItem,
+            new ToolStripSeparator(),
+            propertiesItem
         });
 
         _layersTree.ContextMenuStrip = contextMenu;
@@ -630,6 +634,19 @@ public class BaconImageEditor : UserControl
             }
 
             RefreshLayersList();
+            ImageModified?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void OnShowProperties(object? sender, EventArgs e)
+    {
+        var selectedNode = _layersTree.SelectedNode;
+        if (selectedNode?.Tag is not Shape shape) return;
+
+        using var dialog = new ShapePropertiesDialog(shape);
+        if (dialog.ShowDialog(this) == DialogResult.OK)
+        {
+            _canvas.Invalidate();
             ImageModified?.Invoke(this, EventArgs.Empty);
         }
     }
