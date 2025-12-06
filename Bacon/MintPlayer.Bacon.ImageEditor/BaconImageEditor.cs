@@ -51,6 +51,17 @@ public class BaconImageEditor : UserControl
     }
 
     /// <summary>
+    /// Gets or sets whether shape control points are constrained to the image bounds when dragging.
+    /// </summary>
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool ConstrainShapesToImageBounds
+    {
+        get => _canvas.ConstrainShapesToImageBounds;
+        set => _canvas.ConstrainShapesToImageBounds = value;
+    }
+
+    /// <summary>
     /// Currently selected shape.
     /// </summary>
     [Browsable(false)]

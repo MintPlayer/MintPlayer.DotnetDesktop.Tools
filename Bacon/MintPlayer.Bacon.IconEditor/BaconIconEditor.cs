@@ -60,6 +60,17 @@ public class BaconIconEditor : UserControl
     public BaconImageEditor ImageEditor => _imageEditor;
 
     /// <summary>
+    /// Gets or sets whether shape control points are constrained to the image bounds when dragging.
+    /// </summary>
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool ConstrainShapesToImageBounds
+    {
+        get => _imageEditor.ConstrainShapesToImageBounds;
+        set => _imageEditor.ConstrainShapesToImageBounds = value;
+    }
+
+    /// <summary>
     /// Event fired when the icon changes.
     /// </summary>
     public event EventHandler? IconChanged;

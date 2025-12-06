@@ -37,6 +37,13 @@ internal class ImageCanvas : UserControl
     private static readonly Color MoveHandleColor = Color.FromArgb(0, 120, 215);
     private static readonly Color MoveHandleHoverColor = Color.FromArgb(255, 165, 0);
 
+    /// <summary>
+    /// Gets or sets whether shape control points are constrained to the image bounds when dragging.
+    /// </summary>
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool ConstrainShapesToImageBounds { get; set; }
+
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public BaconImage? Image
@@ -195,10 +202,17 @@ internal class ImageCanvas : UserControl
         g.TranslateTransform(_panOffset.X, _panOffset.Y);
         g.ScaleTransform(_zoom, _zoom);
 
+        // Clip shape drawing to image bounds
+        var oldClip = g.Clip;
+        g.SetClip(new RectangleF(0, 0, _image.Width, _image.Height));
+
         foreach (var layer in _image.Layers)
         {
             layer.Draw(g, _image.Width, _image.Height);
         }
+
+        // Remove clip so selection outlines and glyphs remain visible outside image bounds
+        g.Clip = oldClip;
 
         DrawSelectionAndControlPoints(g);
 
@@ -476,12 +490,13 @@ internal class ImageCanvas : UserControl
             var dx = imagePoint.X - _dragStartImagePoint.X;
             var dy = imagePoint.Y - _dragStartImagePoint.Y;
 
-            foreach (var shape in _selectedShapes)
-            {
-                MoveShape(shape, dx, dy);
-            }
+            // Calculate actual delta after clamping (if enabled)
+            var actualDelta = MoveShapes(_selectedShapes, dx, dy, ConstrainShapesToImageBounds);
 
-            _dragStartImagePoint = imagePoint;
+            // Only update drag start by actual movement to prevent "jumping"
+            _dragStartImagePoint = new PointF(
+                _dragStartImagePoint.X + actualDelta.X,
+                _dragStartImagePoint.Y + actualDelta.Y);
             _lastMousePos = e.Location;
             Refresh();
             ImageModified?.Invoke(this, EventArgs.Empty);
@@ -494,6 +509,10 @@ internal class ImageCanvas : UserControl
             if (primaryShape != null)
             {
                 var imagePoint = ScreenToImage(e.Location);
+                if (ConstrainShapesToImageBounds)
+                {
+                    imagePoint = ClampToImageBounds(imagePoint);
+                }
                 primaryShape.SetControlPoint(_selectedControlPointIndex, imagePoint);
                 _lastMousePos = e.Location;
                 Refresh();
@@ -548,14 +567,44 @@ internal class ImageCanvas : UserControl
         }
     }
 
-    private void MoveShape(Shape shape, float dx, float dy)
+    private PointF MoveShapes(IEnumerable<Shape> shapes, float dx, float dy, bool clampToBounds)
     {
-        var controlPoints = shape.ControlPoints;
-        for (int i = 0; i < controlPoints.Count; i++)
+        if (clampToBounds && _image != null)
         {
-            var pt = controlPoints[i];
-            shape.SetControlPoint(i, new PointF(pt.X + dx, pt.Y + dy));
+            // Calculate combined bounds of all shapes
+            float minX = float.MaxValue, minY = float.MaxValue;
+            float maxX = float.MinValue, maxY = float.MinValue;
+
+            foreach (var shape in shapes)
+            {
+                foreach (var pt in shape.ControlPoints)
+                {
+                    minX = Math.Min(minX, pt.X);
+                    minY = Math.Min(minY, pt.Y);
+                    maxX = Math.Max(maxX, pt.X);
+                    maxY = Math.Max(maxY, pt.Y);
+                }
+            }
+
+            // Clamp delta so all shapes stay within bounds
+            if (minX + dx < 0) dx = -minX;
+            if (minY + dy < 0) dy = -minY;
+            if (maxX + dx > _image.Width) dx = _image.Width - maxX;
+            if (maxY + dy > _image.Height) dy = _image.Height - maxY;
         }
+
+        // Apply movement to all shapes
+        foreach (var shape in shapes)
+        {
+            var controlPoints = shape.ControlPoints;
+            for (int i = 0; i < controlPoints.Count; i++)
+            {
+                var pt = controlPoints[i];
+                shape.SetControlPoint(i, new PointF(pt.X + dx, pt.Y + dy));
+            }
+        }
+
+        return new PointF(dx, dy);
     }
 
     protected override void OnMouseUp(MouseEventArgs e)
@@ -605,6 +654,14 @@ internal class ImageCanvas : UserControl
         return new PointF(
             (screenPoint.X - _panOffset.X) / _zoom,
             (screenPoint.Y - _panOffset.Y) / _zoom);
+    }
+
+    private PointF ClampToImageBounds(PointF point)
+    {
+        if (_image == null) return point;
+        return new PointF(
+            Math.Max(0, Math.Min(_image.Width, point.X)),
+            Math.Max(0, Math.Min(_image.Height, point.Y)));
     }
 
     protected override void OnResize(EventArgs e)
