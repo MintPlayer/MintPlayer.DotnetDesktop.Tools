@@ -29,6 +29,7 @@ public partial class ShapePropertiesDialog : Form
         // Setup combo box items
         _dashStyleCombo.Items.AddRange(Enum.GetNames(typeof(DashStyle)).Where(n => n != "Custom").ToArray());
         _startCapCombo.Items.AddRange(new[] { "Flat", "Round", "Square", "Triangle" });
+        _middleCapCombo.Items.AddRange(new[] { "Flat", "Round", "Triangle" });
         _endCapCombo.Items.AddRange(new[] { "Flat", "Round", "Square", "Triangle" });
         _fillTypeCombo.Items.AddRange(new[] { "Solid", "Linear Gradient" });
 
@@ -39,6 +40,7 @@ public partial class ShapePropertiesDialog : Form
         _penWidthInput.ValueChanged += OnPenPropertyChanged;
         _dashStyleCombo.SelectedIndexChanged += OnPenPropertyChanged;
         _startCapCombo.SelectedIndexChanged += OnPenPropertyChanged;
+        _middleCapCombo.SelectedIndexChanged += OnPenPropertyChanged;
         _endCapCombo.SelectedIndexChanged += OnPenPropertyChanged;
         _fillTypeCombo.SelectedIndexChanged += OnFillTypeChanged;
         _fillColorButton.Click += OnFillColorClick;
@@ -85,6 +87,7 @@ public partial class ShapePropertiesDialog : Form
             _penWidthInput.Value = (decimal)pen.Width;
             _dashStyleCombo.SelectedItem = pen.DashStyle.ToString();
             _startCapCombo.SelectedItem = GetCapName(pen.StartCap);
+            _middleCapCombo.SelectedItem = GetDashCapName(pen.DashCap);
             _endCapCombo.SelectedItem = GetCapName(pen.EndCap);
         }
         else
@@ -92,6 +95,7 @@ public partial class ShapePropertiesDialog : Form
             _hasPenCheckbox.Checked = false;
             _dashStyleCombo.SelectedIndex = 0;
             _startCapCombo.SelectedIndex = 0;
+            _middleCapCombo.SelectedIndex = 0;
             _endCapCombo.SelectedIndex = 0;
         }
 
@@ -141,6 +145,28 @@ public partial class ShapePropertiesDialog : Form
             "Square" => LineCap.Square,
             "Triangle" => LineCap.Triangle,
             _ => LineCap.Flat
+        };
+    }
+
+    private static string GetDashCapName(DashCap cap)
+    {
+        return cap switch
+        {
+            DashCap.Flat => "Flat",
+            DashCap.Round => "Round",
+            DashCap.Triangle => "Triangle",
+            _ => "Flat"
+        };
+    }
+
+    private static DashCap GetDashCapFromName(string name)
+    {
+        return name switch
+        {
+            "Flat" => DashCap.Flat,
+            "Round" => DashCap.Round,
+            "Triangle" => DashCap.Triangle,
+            _ => DashCap.Flat
         };
     }
 
@@ -270,6 +296,10 @@ public partial class ShapePropertiesDialog : Form
             {
                 pen.StartCap = GetCapFromName(startCapName);
             }
+            if (_middleCapCombo.SelectedItem is string middleCapName)
+            {
+                pen.DashCap = GetDashCapFromName(middleCapName);
+            }
             if (_endCapCombo.SelectedItem is string endCapName)
             {
                 pen.EndCap = GetCapFromName(endCapName);
@@ -304,6 +334,7 @@ public partial class ShapePropertiesDialog : Form
                 Color = _penColor,
                 Width = (float)_penWidthInput.Value,
                 DashStyle = Enum.TryParse<DashStyle>(_dashStyleCombo.SelectedItem?.ToString(), out var ds) ? ds : DashStyle.Solid,
+                DashCap = GetDashCapFromName(_middleCapCombo.SelectedItem?.ToString() ?? "Flat"),
                 StartCap = GetCapFromName(_startCapCombo.SelectedItem?.ToString() ?? "Flat"),
                 EndCap = GetCapFromName(_endCapCombo.SelectedItem?.ToString() ?? "Flat")
             };
@@ -318,6 +349,7 @@ public partial class ShapePropertiesDialog : Form
                     Color = _penColor,
                     Width = (float)_penWidthInput.Value,
                     DashStyle = Enum.TryParse<DashStyle>(_dashStyleCombo.SelectedItem?.ToString(), out var ds) ? ds : DashStyle.Solid,
+                    DashCap = GetDashCapFromName(_middleCapCombo.SelectedItem?.ToString() ?? "Flat"),
                     StartCap = GetCapFromName(_startCapCombo.SelectedItem?.ToString() ?? "Flat"),
                     EndCap = GetCapFromName(_endCapCombo.SelectedItem?.ToString() ?? "Flat")
                 };

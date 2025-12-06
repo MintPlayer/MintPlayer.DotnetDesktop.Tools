@@ -40,6 +40,8 @@ partial class ShapePropertiesDialog
         _dashStyleCombo = new ComboBox();
         _startCapLabel = new Label();
         _startCapCombo = new ComboBox();
+        _middleCapLabel = new Label();
+        _middleCapCombo = new ComboBox();
         _endCapLabel = new Label();
         _endCapCombo = new ComboBox();
         _fillGroupBox = new GroupBox();
@@ -101,6 +103,8 @@ partial class ShapePropertiesDialog
         //
         _penPanel.Controls.Add(_endCapCombo);
         _penPanel.Controls.Add(_endCapLabel);
+        _penPanel.Controls.Add(_middleCapCombo);
+        _penPanel.Controls.Add(_middleCapLabel);
         _penPanel.Controls.Add(_startCapCombo);
         _penPanel.Controls.Add(_startCapLabel);
         _penPanel.Controls.Add(_dashStyleCombo);
@@ -189,7 +193,7 @@ partial class ShapePropertiesDialog
         //
         // _startCapLabel
         //
-        _startCapLabel.Location = new Point(210, 35);
+        _startCapLabel.Location = new Point(210, 5);
         _startCapLabel.Name = "_startCapLabel";
         _startCapLabel.Size = new Size(70, 23);
         _startCapLabel.TabIndex = 7;
@@ -201,10 +205,30 @@ partial class ShapePropertiesDialog
         //
         _startCapCombo.DropDownStyle = ComboBoxStyle.DropDownList;
         _startCapCombo.FormattingEnabled = true;
-        _startCapCombo.Location = new Point(280, 35);
+        _startCapCombo.Location = new Point(280, 5);
         _startCapCombo.Name = "_startCapCombo";
         _startCapCombo.Size = new Size(75, 23);
         _startCapCombo.TabIndex = 8;
+
+        //
+        // _middleCapLabel
+        //
+        _middleCapLabel.Location = new Point(210, 35);
+        _middleCapLabel.Name = "_middleCapLabel";
+        _middleCapLabel.Size = new Size(70, 23);
+        _middleCapLabel.TabIndex = 9;
+        _middleCapLabel.Text = "Middle Cap:";
+        _middleCapLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+        //
+        // _middleCapCombo
+        //
+        _middleCapCombo.DropDownStyle = ComboBoxStyle.DropDownList;
+        _middleCapCombo.FormattingEnabled = true;
+        _middleCapCombo.Location = new Point(280, 35);
+        _middleCapCombo.Name = "_middleCapCombo";
+        _middleCapCombo.Size = new Size(75, 23);
+        _middleCapCombo.TabIndex = 10;
 
         //
         // _endCapLabel
@@ -212,7 +236,7 @@ partial class ShapePropertiesDialog
         _endCapLabel.Location = new Point(210, 65);
         _endCapLabel.Name = "_endCapLabel";
         _endCapLabel.Size = new Size(70, 23);
-        _endCapLabel.TabIndex = 9;
+        _endCapLabel.TabIndex = 11;
         _endCapLabel.Text = "End Cap:";
         _endCapLabel.TextAlign = ContentAlignment.MiddleLeft;
 
@@ -224,7 +248,7 @@ partial class ShapePropertiesDialog
         _endCapCombo.Location = new Point(280, 65);
         _endCapCombo.Name = "_endCapCombo";
         _endCapCombo.Size = new Size(75, 23);
-        _endCapCombo.TabIndex = 10;
+        _endCapCombo.TabIndex = 12;
 
         //
         // _fillGroupBox
@@ -482,6 +506,8 @@ partial class ShapePropertiesDialog
     private ComboBox _dashStyleCombo;
     private Label _startCapLabel;
     private ComboBox _startCapCombo;
+    private Label _middleCapLabel;
+    private ComboBox _middleCapCombo;
     private Label _endCapLabel;
     private ComboBox _endCapCombo;
     private GroupBox _fillGroupBox;

@@ -12,6 +12,7 @@ public class SerializablePen
     public SerializableColor Color { get; set; } = new(System.Drawing.Color.Black);
     public float Width { get; set; } = 1f;
     public DashStyle DashStyle { get; set; } = DashStyle.Solid;
+    public DashCap DashCap { get; set; } = DashCap.Flat;
     public LineCap StartCap { get; set; } = LineCap.Flat;
     public LineCap EndCap { get; set; } = LineCap.Flat;
 
@@ -23,6 +24,7 @@ public class SerializablePen
             var pen = new Pen(Color, Width)
             {
                 DashStyle = DashStyle,
+                DashCap = DashCap,
                 StartCap = StartCap,
                 EndCap = EndCap
             };
@@ -37,6 +39,7 @@ public class SerializablePen
         Color = pen.Color;
         Width = pen.Width;
         DashStyle = pen.DashStyle;
+        DashCap = pen.DashCap;
         StartCap = pen.StartCap;
         EndCap = pen.EndCap;
     }
