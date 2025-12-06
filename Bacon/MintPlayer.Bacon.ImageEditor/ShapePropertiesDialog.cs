@@ -8,39 +8,9 @@ namespace MintPlayer.Bacon.ImageEditor;
 /// <summary>
 /// Dialog for editing shape Pen and Brush properties.
 /// </summary>
-public class ShapePropertiesDialog : Form
+public partial class ShapePropertiesDialog : Form
 {
     private readonly Shape _shape;
-
-    // Pen controls
-    private readonly CheckBox _hasPenCheckbox;
-    private readonly Panel _penPanel;
-    private readonly Button _penColorButton;
-    private readonly NumericUpDown _penWidthInput;
-    private readonly ComboBox _dashStyleCombo;
-    private readonly ComboBox _startCapCombo;
-    private readonly ComboBox _endCapCombo;
-    private readonly Panel _penColorPreview;
-
-    // Fill controls
-    private readonly CheckBox _hasFillCheckbox;
-    private readonly Panel _fillPanel;
-    private readonly ComboBox _fillTypeCombo;
-    private readonly Button _fillColorButton;
-    private readonly Panel _fillColorPreview;
-    private readonly Button _gradientColor1Button;
-    private readonly Button _gradientColor2Button;
-    private readonly Panel _gradientColor1Preview;
-    private readonly Panel _gradientColor2Preview;
-    private readonly Panel _solidFillPanel;
-    private readonly Panel _gradientFillPanel;
-
-    // Shape preview
-    private readonly Panel _previewPanel;
-
-    // Buttons
-    private readonly Button _okButton;
-    private readonly Button _cancelButton;
 
     // Current values
     private Color _penColor = Color.Black;
@@ -52,353 +22,37 @@ public class ShapePropertiesDialog : Form
     {
         _shape = shape;
 
+        InitializeComponent();
+
         Text = $"Properties - {shape.Name ?? shape.GetType().Name}";
-        Size = new Size(420, 520);
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        StartPosition = FormStartPosition.CenterParent;
-        MaximizeBox = false;
-        MinimizeBox = false;
 
-        var padding = 12;
-        var labelWidth = 80;
-        var inputWidth = 120;
-        var currentY = padding;
-
-        // ===== PEN SECTION =====
-        var penGroupBox = new GroupBox
-        {
-            Text = "Stroke (Pen)",
-            Location = new Point(padding, currentY),
-            Size = new Size(Size.Width - padding * 2 - 16, 180)
-        };
-
-        _hasPenCheckbox = new CheckBox
-        {
-            Text = "Has stroke",
-            Location = new Point(10, 20),
-            Size = new Size(100, 20),
-            Checked = GetShapePen() != null
-        };
-        _hasPenCheckbox.CheckedChanged += OnHasPenChanged;
-
-        _penPanel = new Panel
-        {
-            Location = new Point(10, 45),
-            Size = new Size(penGroupBox.Width - 20, 125)
-        };
-
-        // Pen color
-        var penColorLabel = new Label
-        {
-            Text = "Color:",
-            Location = new Point(0, 5),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _penColorPreview = new Panel
-        {
-            Location = new Point(labelWidth, 5),
-            Size = new Size(25, 23),
-            BorderStyle = BorderStyle.FixedSingle
-        };
-
-        _penColorButton = new Button
-        {
-            Text = "Choose...",
-            Location = new Point(labelWidth + 30, 5),
-            Size = new Size(inputWidth - 30, 23)
-        };
-        _penColorButton.Click += OnPenColorClick;
-
-        // Pen width
-        var penWidthLabel = new Label
-        {
-            Text = "Width:",
-            Location = new Point(0, 35),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _penWidthInput = new NumericUpDown
-        {
-            Location = new Point(labelWidth, 35),
-            Size = new Size(inputWidth, 23),
-            Minimum = 0.1m,
-            Maximum = 100,
-            DecimalPlaces = 1,
-            Value = 1
-        };
-        _penWidthInput.ValueChanged += OnPenPropertyChanged;
-
-        // Dash style
-        var dashStyleLabel = new Label
-        {
-            Text = "Dash Style:",
-            Location = new Point(0, 65),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _dashStyleCombo = new ComboBox
-        {
-            Location = new Point(labelWidth, 65),
-            Size = new Size(inputWidth, 23),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
+        // Setup combo box items
         _dashStyleCombo.Items.AddRange(Enum.GetNames(typeof(DashStyle)).Where(n => n != "Custom").ToArray());
-        _dashStyleCombo.SelectedIndexChanged += OnPenPropertyChanged;
-
-        // Start cap
-        var startCapLabel = new Label
-        {
-            Text = "Start Cap:",
-            Location = new Point(200, 35),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _startCapCombo = new ComboBox
-        {
-            Location = new Point(280, 35),
-            Size = new Size(90, 23),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
         _startCapCombo.Items.AddRange(new[] { "Flat", "Round", "Square", "Triangle" });
-        _startCapCombo.SelectedIndexChanged += OnPenPropertyChanged;
-
-        // End cap
-        var endCapLabel = new Label
-        {
-            Text = "End Cap:",
-            Location = new Point(200, 65),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _endCapCombo = new ComboBox
-        {
-            Location = new Point(280, 65),
-            Size = new Size(90, 23),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
         _endCapCombo.Items.AddRange(new[] { "Flat", "Round", "Square", "Triangle" });
-        _endCapCombo.SelectedIndexChanged += OnPenPropertyChanged;
-
-        _penPanel.Controls.AddRange(new Control[]
-        {
-            penColorLabel, _penColorPreview, _penColorButton,
-            penWidthLabel, _penWidthInput,
-            dashStyleLabel, _dashStyleCombo,
-            startCapLabel, _startCapCombo,
-            endCapLabel, _endCapCombo
-        });
-
-        penGroupBox.Controls.Add(_hasPenCheckbox);
-        penGroupBox.Controls.Add(_penPanel);
-        currentY += penGroupBox.Height + padding;
-
-        // ===== FILL SECTION =====
-        var fillGroupBox = new GroupBox
-        {
-            Text = "Fill (Brush)",
-            Location = new Point(padding, currentY),
-            Size = new Size(Size.Width - padding * 2 - 16, 170)
-        };
-
-        _hasFillCheckbox = new CheckBox
-        {
-            Text = "Has fill",
-            Location = new Point(10, 20),
-            Size = new Size(100, 20),
-            Checked = GetShapeFill() != null
-        };
-        _hasFillCheckbox.CheckedChanged += OnHasFillChanged;
-
-        _fillPanel = new Panel
-        {
-            Location = new Point(10, 45),
-            Size = new Size(fillGroupBox.Width - 20, 115)
-        };
-
-        // Fill type
-        var fillTypeLabel = new Label
-        {
-            Text = "Type:",
-            Location = new Point(0, 5),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _fillTypeCombo = new ComboBox
-        {
-            Location = new Point(labelWidth, 5),
-            Size = new Size(inputWidth, 23),
-            DropDownStyle = ComboBoxStyle.DropDownList
-        };
         _fillTypeCombo.Items.AddRange(new[] { "Solid", "Linear Gradient" });
+
+        // Wire up events
+        _hasPenCheckbox.CheckedChanged += OnHasPenChanged;
+        _hasFillCheckbox.CheckedChanged += OnHasFillChanged;
+        _penColorButton.Click += OnPenColorClick;
+        _penWidthInput.ValueChanged += OnPenPropertyChanged;
+        _dashStyleCombo.SelectedIndexChanged += OnPenPropertyChanged;
+        _startCapCombo.SelectedIndexChanged += OnPenPropertyChanged;
+        _endCapCombo.SelectedIndexChanged += OnPenPropertyChanged;
         _fillTypeCombo.SelectedIndexChanged += OnFillTypeChanged;
-
-        // Solid fill panel
-        _solidFillPanel = new Panel
-        {
-            Location = new Point(0, 35),
-            Size = new Size(350, 30)
-        };
-
-        var solidColorLabel = new Label
-        {
-            Text = "Color:",
-            Location = new Point(0, 5),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _fillColorPreview = new Panel
-        {
-            Location = new Point(labelWidth, 5),
-            Size = new Size(25, 23),
-            BorderStyle = BorderStyle.FixedSingle
-        };
-
-        _fillColorButton = new Button
-        {
-            Text = "Choose...",
-            Location = new Point(labelWidth + 30, 5),
-            Size = new Size(inputWidth - 30, 23)
-        };
         _fillColorButton.Click += OnFillColorClick;
-
-        _solidFillPanel.Controls.AddRange(new Control[]
-        {
-            solidColorLabel, _fillColorPreview, _fillColorButton
-        });
-
-        // Gradient fill panel
-        _gradientFillPanel = new Panel
-        {
-            Location = new Point(0, 35),
-            Size = new Size(350, 70),
-            Visible = false
-        };
-
-        var gradient1Label = new Label
-        {
-            Text = "Color 1:",
-            Location = new Point(0, 5),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _gradientColor1Preview = new Panel
-        {
-            Location = new Point(labelWidth, 5),
-            Size = new Size(25, 23),
-            BorderStyle = BorderStyle.FixedSingle
-        };
-
-        _gradientColor1Button = new Button
-        {
-            Text = "Choose...",
-            Location = new Point(labelWidth + 30, 5),
-            Size = new Size(inputWidth - 30, 23)
-        };
         _gradientColor1Button.Click += OnGradientColor1Click;
-
-        var gradient2Label = new Label
-        {
-            Text = "Color 2:",
-            Location = new Point(0, 35),
-            Size = new Size(labelWidth, 23),
-            TextAlign = ContentAlignment.MiddleLeft
-        };
-
-        _gradientColor2Preview = new Panel
-        {
-            Location = new Point(labelWidth, 35),
-            Size = new Size(25, 23),
-            BorderStyle = BorderStyle.FixedSingle
-        };
-
-        _gradientColor2Button = new Button
-        {
-            Text = "Choose...",
-            Location = new Point(labelWidth + 30, 35),
-            Size = new Size(inputWidth - 30, 23)
-        };
         _gradientColor2Button.Click += OnGradientColor2Click;
-
-        _gradientFillPanel.Controls.AddRange(new Control[]
-        {
-            gradient1Label, _gradientColor1Preview, _gradientColor1Button,
-            gradient2Label, _gradientColor2Preview, _gradientColor2Button
-        });
-
-        _fillPanel.Controls.AddRange(new Control[]
-        {
-            fillTypeLabel, _fillTypeCombo,
-            _solidFillPanel, _gradientFillPanel
-        });
-
-        fillGroupBox.Controls.Add(_hasFillCheckbox);
-        fillGroupBox.Controls.Add(_fillPanel);
-        currentY += fillGroupBox.Height + padding;
-
-        // ===== PREVIEW SECTION =====
-        var previewGroupBox = new GroupBox
-        {
-            Text = "Preview",
-            Location = new Point(padding, currentY),
-            Size = new Size(Size.Width - padding * 2 - 16, 80)
-        };
-
-        _previewPanel = new Panel
-        {
-            Location = new Point(10, 20),
-            Size = new Size(previewGroupBox.Width - 20, 50),
-            BorderStyle = BorderStyle.FixedSingle
-        };
         _previewPanel.Paint += OnPreviewPaint;
-
-        previewGroupBox.Controls.Add(_previewPanel);
-        currentY += previewGroupBox.Height + padding;
-
-        // ===== BUTTONS =====
-        _okButton = new Button
-        {
-            Text = "OK",
-            Location = new Point(Size.Width - 180, Size.Height - 75),
-            Size = new Size(75, 25),
-            DialogResult = DialogResult.OK
-        };
         _okButton.Click += OnOkClick;
-
-        _cancelButton = new Button
-        {
-            Text = "Cancel",
-            Location = new Point(Size.Width - 95, Size.Height - 75),
-            Size = new Size(75, 25),
-            DialogResult = DialogResult.Cancel
-        };
-
-        AcceptButton = _okButton;
-        CancelButton = _cancelButton;
-
-        Controls.AddRange(new Control[]
-        {
-            penGroupBox,
-            fillGroupBox,
-            previewGroupBox,
-            _okButton,
-            _cancelButton
-        });
 
         // Initialize values from shape
         InitializeFromShape();
 
         // Set initial enabled state for fill section based on shape type
         var isPlane = _shape is Plane;
-        fillGroupBox.Enabled = isPlane;
+        _fillGroupBox.Enabled = isPlane;
         if (!isPlane)
         {
             _hasFillCheckbox.Checked = false;
@@ -466,7 +120,7 @@ public class ShapePropertiesDialog : Form
         UpdatePanelEnabled();
     }
 
-    private string GetCapName(LineCap cap)
+    private static string GetCapName(LineCap cap)
     {
         return cap switch
         {
@@ -478,7 +132,7 @@ public class ShapePropertiesDialog : Form
         };
     }
 
-    private LineCap GetCapFromName(string name)
+    private static LineCap GetCapFromName(string name)
     {
         return name switch
         {
@@ -678,10 +332,10 @@ public class ShapePropertiesDialog : Form
             {
                 if (_fillTypeCombo.SelectedIndex == 1)
                 {
-                    var bounds = _shape.Bounds;
+                    var shapeBounds = _shape.Bounds;
                     plane.Fill = new SerializableLinearGradientBrush(
-                        new PointF(bounds.Left, bounds.Top),
-                        new PointF(bounds.Right, bounds.Bottom),
+                        new PointF(shapeBounds.Left, shapeBounds.Top),
+                        new PointF(shapeBounds.Right, shapeBounds.Bottom),
                         _gradientColor1,
                         _gradientColor2);
                 }
