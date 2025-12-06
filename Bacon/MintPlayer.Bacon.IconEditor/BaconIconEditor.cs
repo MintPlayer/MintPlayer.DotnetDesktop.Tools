@@ -94,7 +94,7 @@ public class BaconIconEditor : UserControl
         };
 
         // Create list panel
-        _listPanel = new Panel
+        _listPanel = new DoubleBufferedPanel
         {
             Dock = DockStyle.Fill,
             Padding = new Padding(4)

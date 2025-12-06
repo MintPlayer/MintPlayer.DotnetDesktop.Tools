@@ -18,18 +18,24 @@ internal class ImageCanvas : UserControl
     private PointF _panOffset = PointF.Empty;
     private bool _isPanning;
     private Point _lastMousePos;
-    private Shape? _selectedShape;
+    private readonly List<Shape> _selectedShapes = [];
     private int _selectedControlPointIndex = -1;
     private bool _isDraggingControlPoint;
+    private bool _isDraggingShapes;
+    private bool _isHoveringMoveHandle;
+    private PointF _dragStartImagePoint;
 
     private const int CheckerboardSize = 8;
     private static readonly Color CheckerColor1 = Color.FromArgb(204, 204, 204);
     private static readonly Color CheckerColor2 = Color.FromArgb(255, 255, 255);
     private static readonly Color BackgroundColor = Color.FromArgb(173, 216, 230); // Light blue
     private const float ControlPointRadius = 5f;
+    private const float MoveHandleSize = 12f;
     private static readonly Color ControlPointColor = Color.FromArgb(0, 120, 215);
     private static readonly Color ControlPointHoverColor = Color.FromArgb(255, 165, 0);
     private static readonly Color SelectedShapeColor = Color.FromArgb(0, 120, 215);
+    private static readonly Color MoveHandleColor = Color.FromArgb(0, 120, 215);
+    private static readonly Color MoveHandleHoverColor = Color.FromArgb(255, 165, 0);
 
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -39,7 +45,7 @@ internal class ImageCanvas : UserControl
         set
         {
             _image = value;
-            _selectedShape = null;
+            _selectedShapes.Clear();
             _selectedControlPointIndex = -1;
             CenterImage();
             Invalidate();
@@ -59,18 +65,32 @@ internal class ImageCanvas : UserControl
         }
     }
 
+    /// <summary>
+    /// Gets the first selected shape (for backward compatibility).
+    /// </summary>
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Shape? SelectedShape
     {
-        get => _selectedShape;
+        get => _selectedShapes.FirstOrDefault();
         set
         {
-            _selectedShape = value;
+            _selectedShapes.Clear();
+            if (value != null)
+            {
+                _selectedShapes.Add(value);
+            }
             Invalidate();
             SelectionChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    /// <summary>
+    /// Gets all selected shapes.
+    /// </summary>
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public IReadOnlyList<Shape> SelectedShapes => _selectedShapes;
 
     public event EventHandler? ZoomChanged;
     public event EventHandler? SelectionChanged;
@@ -85,6 +105,49 @@ internal class ImageCanvas : UserControl
 
         BackColor = BackgroundColor;
     }
+
+    /// <summary>
+    /// Add a shape to the selection.
+    /// </summary>
+    public void AddToSelection(Shape shape)
+    {
+        if (!_selectedShapes.Contains(shape))
+        {
+            _selectedShapes.Add(shape);
+            Invalidate();
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Remove a shape from the selection.
+    /// </summary>
+    public void RemoveFromSelection(Shape shape)
+    {
+        if (_selectedShapes.Remove(shape))
+        {
+            Invalidate();
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Clear the selection.
+    /// </summary>
+    public void ClearSelection()
+    {
+        if (_selectedShapes.Count > 0)
+        {
+            _selectedShapes.Clear();
+            Invalidate();
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Check if a shape is selected.
+    /// </summary>
+    public bool IsSelected(Shape shape) => _selectedShapes.Contains(shape);
 
     public void CenterImage()
     {
@@ -137,7 +200,7 @@ internal class ImageCanvas : UserControl
             layer.Draw(g, _image.Width, _image.Height);
         }
 
-        DrawControlPoints(g);
+        DrawSelectionAndControlPoints(g);
 
         g.Transform = oldTransform;
 
@@ -171,7 +234,7 @@ internal class ImageCanvas : UserControl
         g.Clip = oldClip;
     }
 
-    private void DrawControlPoints(Graphics g)
+    private void DrawSelectionAndControlPoints(Graphics g)
     {
         if (_image == null) return;
 
@@ -183,11 +246,12 @@ internal class ImageCanvas : UserControl
             {
                 if (!shape.IsVisible || shape.IsLocked) continue;
 
-                var isSelected = shape == _selectedShape;
+                var isSelected = _selectedShapes.Contains(shape);
                 var controlPoints = shape.ControlPoints;
 
                 if (isSelected)
                 {
+                    // Draw selection rectangle
                     using var selectionPen = new Pen(SelectedShapeColor, 1.5f / _zoom)
                     {
                         DashStyle = DashStyle.Dash
@@ -195,23 +259,96 @@ internal class ImageCanvas : UserControl
                     var bounds = shape.Bounds;
                     bounds.Inflate(3 / _zoom, 3 / _zoom);
                     g.DrawRectangle(selectionPen, bounds.X, bounds.Y, bounds.Width, bounds.Height);
+
+                    // Draw move handle at top-right of bounds
+                    DrawMoveHandle(g, bounds);
                 }
 
-                for (int i = 0; i < controlPoints.Count; i++)
+                // Draw control points for selected shapes
+                if (isSelected)
                 {
-                    var pt = controlPoints[i];
-                    var isHovered = isSelected && i == _selectedControlPointIndex;
-                    var color = isHovered ? ControlPointHoverColor : ControlPointColor;
-                    var radius = ControlPointRadius / _zoom;
+                    for (int i = 0; i < controlPoints.Count; i++)
+                    {
+                        var pt = controlPoints[i];
+                        var isPrimarySelected = shape == _selectedShapes.FirstOrDefault();
+                        var isHovered = isPrimarySelected && i == _selectedControlPointIndex;
+                        var color = isHovered ? ControlPointHoverColor : ControlPointColor;
+                        var radius = ControlPointRadius / _zoom;
 
-                    using var brush = new SolidBrush(color);
-                    using var pen = new Pen(Color.White, 1f / _zoom);
+                        using var brush = new SolidBrush(color);
+                        using var pen = new Pen(Color.White, 1f / _zoom);
 
-                    g.FillEllipse(brush, pt.X - radius, pt.Y - radius, radius * 2, radius * 2);
-                    g.DrawEllipse(pen, pt.X - radius, pt.Y - radius, radius * 2, radius * 2);
+                        g.FillEllipse(brush, pt.X - radius, pt.Y - radius, radius * 2, radius * 2);
+                        g.DrawEllipse(pen, pt.X - radius, pt.Y - radius, radius * 2, radius * 2);
+                    }
                 }
             }
         }
+    }
+
+    private void DrawMoveHandle(Graphics g, RectangleF shapeBounds)
+    {
+        var handleSize = MoveHandleSize / _zoom;
+        var handleX = shapeBounds.Right - handleSize / 2;
+        var handleY = shapeBounds.Top - handleSize / 2;
+        var handleRect = new RectangleF(handleX, handleY, handleSize, handleSize);
+
+        var color = _isHoveringMoveHandle ? MoveHandleHoverColor : MoveHandleColor;
+
+        using var brush = new SolidBrush(color);
+        using var pen = new Pen(Color.White, 1f / _zoom);
+
+        // Draw rounded rectangle
+        g.FillEllipse(brush, handleRect);
+        g.DrawEllipse(pen, handleRect);
+
+        // Draw move arrows icon
+        using var iconPen = new Pen(Color.White, 1.5f / _zoom);
+        var centerX = handleRect.X + handleRect.Width / 2;
+        var centerY = handleRect.Y + handleRect.Height / 2;
+        var arrowSize = handleSize / 4;
+
+        // Horizontal arrows
+        g.DrawLine(iconPen, centerX - arrowSize, centerY, centerX + arrowSize, centerY);
+        // Vertical arrows
+        g.DrawLine(iconPen, centerX, centerY - arrowSize, centerX, centerY + arrowSize);
+        // Arrow heads
+        var headSize = arrowSize / 2;
+        // Right
+        g.DrawLine(iconPen, centerX + arrowSize, centerY, centerX + arrowSize - headSize, centerY - headSize);
+        g.DrawLine(iconPen, centerX + arrowSize, centerY, centerX + arrowSize - headSize, centerY + headSize);
+        // Left
+        g.DrawLine(iconPen, centerX - arrowSize, centerY, centerX - arrowSize + headSize, centerY - headSize);
+        g.DrawLine(iconPen, centerX - arrowSize, centerY, centerX - arrowSize + headSize, centerY + headSize);
+        // Up
+        g.DrawLine(iconPen, centerX, centerY - arrowSize, centerX - headSize, centerY - arrowSize + headSize);
+        g.DrawLine(iconPen, centerX, centerY - arrowSize, centerX + headSize, centerY - arrowSize + headSize);
+        // Down
+        g.DrawLine(iconPen, centerX, centerY + arrowSize, centerX - headSize, centerY + arrowSize - headSize);
+        g.DrawLine(iconPen, centerX, centerY + arrowSize, centerX + headSize, centerY + arrowSize - headSize);
+    }
+
+    private RectangleF GetMoveHandleRect(RectangleF shapeBounds)
+    {
+        var handleSize = MoveHandleSize / _zoom;
+        var handleX = shapeBounds.Right - handleSize / 2;
+        var handleY = shapeBounds.Top - handleSize / 2;
+        return new RectangleF(handleX, handleY, handleSize, handleSize);
+    }
+
+    private bool HitTestMoveHandle(PointF imagePoint)
+    {
+        foreach (var shape in _selectedShapes)
+        {
+            var bounds = shape.Bounds;
+            bounds.Inflate(3 / _zoom, 3 / _zoom);
+            var handleRect = GetMoveHandleRect(bounds);
+            if (handleRect.Contains(imagePoint))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected override void OnMouseDown(MouseEventArgs e)
@@ -229,10 +366,23 @@ internal class ImageCanvas : UserControl
         if (e.Button == MouseButtons.Left && _image != null)
         {
             var imagePoint = ScreenToImage(e.Location);
+            var isCtrlPressed = ModifierKeys.HasFlag(Keys.Control);
 
-            if (_selectedShape != null && !_selectedShape.IsLocked)
+            // Check if clicking on move handle
+            if (_selectedShapes.Count > 0 && HitTestMoveHandle(imagePoint))
             {
-                var hitIndex = _selectedShape.HitTestControlPoint(imagePoint, 8 / _zoom);
+                _isDraggingShapes = true;
+                _dragStartImagePoint = imagePoint;
+                _lastMousePos = e.Location;
+                Cursor = Cursors.SizeAll;
+                return;
+            }
+
+            // Check if clicking on a control point of the primary selected shape
+            var primaryShape = _selectedShapes.FirstOrDefault();
+            if (primaryShape != null && !primaryShape.IsLocked)
+            {
+                var hitIndex = primaryShape.HitTestControlPoint(imagePoint, 8 / _zoom);
                 if (hitIndex >= 0)
                 {
                     _selectedControlPointIndex = hitIndex;
@@ -242,6 +392,7 @@ internal class ImageCanvas : UserControl
                 }
             }
 
+            // Check if clicking on any shape
             foreach (var layer in _image.Layers.OfType<ShapeLayer>())
             {
                 if (!layer.IsVisible || layer.IsLocked) continue;
@@ -252,26 +403,53 @@ internal class ImageCanvas : UserControl
                     if (!shape.IsVisible || shape.IsLocked) continue;
 
                     var hitIndex = shape.HitTestControlPoint(imagePoint, 8 / _zoom);
-                    if (hitIndex >= 0)
+                    if (hitIndex >= 0 || shape.Bounds.Contains(imagePoint))
                     {
-                        SelectedShape = shape;
-                        _selectedControlPointIndex = hitIndex;
-                        _isDraggingControlPoint = true;
-                        _lastMousePos = e.Location;
-                        return;
-                    }
+                        if (isCtrlPressed)
+                        {
+                            // Toggle selection with Ctrl
+                            if (_selectedShapes.Contains(shape))
+                            {
+                                RemoveFromSelection(shape);
+                            }
+                            else
+                            {
+                                AddToSelection(shape);
+                            }
+                        }
+                        else
+                        {
+                            // Replace selection without Ctrl
+                            if (!_selectedShapes.Contains(shape))
+                            {
+                                _selectedShapes.Clear();
+                                _selectedShapes.Add(shape);
+                                SelectionChanged?.Invoke(this, EventArgs.Empty);
+                            }
+                        }
 
-                    if (shape.Bounds.Contains(imagePoint))
-                    {
-                        SelectedShape = shape;
-                        _selectedControlPointIndex = -1;
+                        if (hitIndex >= 0)
+                        {
+                            _selectedControlPointIndex = hitIndex;
+                            _isDraggingControlPoint = true;
+                        }
+                        else
+                        {
+                            _selectedControlPointIndex = -1;
+                        }
+
                         _lastMousePos = e.Location;
+                        Invalidate();
                         return;
                     }
                 }
             }
 
-            SelectedShape = null;
+            // Clicked on nothing
+            if (!isCtrlPressed)
+            {
+                ClearSelection();
+            }
             _selectedControlPointIndex = -1;
         }
     }
@@ -286,37 +464,95 @@ internal class ImageCanvas : UserControl
             var dy = e.Y - _lastMousePos.Y;
             _panOffset = new PointF(_panOffset.X + dx, _panOffset.Y + dy);
             _lastMousePos = e.Location;
-            Refresh(); // Use Refresh() for immediate repaint while dragging
+            Refresh();
             return;
         }
 
-        if (_isDraggingControlPoint && _selectedShape != null && _selectedControlPointIndex >= 0)
+        if (_isDraggingShapes && _selectedShapes.Count > 0)
         {
             var imagePoint = ScreenToImage(e.Location);
-            _selectedShape.SetControlPoint(_selectedControlPointIndex, imagePoint);
+            var dx = imagePoint.X - _dragStartImagePoint.X;
+            var dy = imagePoint.Y - _dragStartImagePoint.Y;
+
+            foreach (var shape in _selectedShapes)
+            {
+                MoveShape(shape, dx, dy);
+            }
+
+            _dragStartImagePoint = imagePoint;
             _lastMousePos = e.Location;
-            Refresh(); // Use Refresh() for immediate repaint while dragging
+            Refresh();
             ImageModified?.Invoke(this, EventArgs.Empty);
             return;
         }
 
-        if (_image != null && _selectedShape != null)
+        if (_isDraggingControlPoint && _selectedShapes.Count > 0 && _selectedControlPointIndex >= 0)
+        {
+            var primaryShape = _selectedShapes.FirstOrDefault();
+            if (primaryShape != null)
+            {
+                var imagePoint = ScreenToImage(e.Location);
+                primaryShape.SetControlPoint(_selectedControlPointIndex, imagePoint);
+                _lastMousePos = e.Location;
+                Refresh();
+                ImageModified?.Invoke(this, EventArgs.Empty);
+            }
+            return;
+        }
+
+        // Update cursor and hover state
+        if (_image != null)
         {
             var imagePoint = ScreenToImage(e.Location);
-            var hitIndex = _selectedShape.HitTestControlPoint(imagePoint, 8 / _zoom);
 
-            if (hitIndex >= 0 && hitIndex != _selectedControlPointIndex)
+            // Check move handle hover
+            var wasHoveringMoveHandle = _isHoveringMoveHandle;
+            _isHoveringMoveHandle = _selectedShapes.Count > 0 && HitTestMoveHandle(imagePoint);
+
+            if (_isHoveringMoveHandle)
             {
-                _selectedControlPointIndex = hitIndex;
+                Cursor = Cursors.SizeAll;
+                if (!wasHoveringMoveHandle) Invalidate();
+                return;
+            }
+            else if (wasHoveringMoveHandle)
+            {
                 Invalidate();
             }
-            else if (hitIndex < 0 && _selectedControlPointIndex >= 0)
-            {
-                _selectedControlPointIndex = -1;
-                Invalidate();
-            }
 
-            Cursor = hitIndex >= 0 ? Cursors.Cross : Cursors.Default;
+            // Check control point hover
+            var primaryShape = _selectedShapes.FirstOrDefault();
+            if (primaryShape != null)
+            {
+                var hitIndex = primaryShape.HitTestControlPoint(imagePoint, 8 / _zoom);
+
+                if (hitIndex >= 0 && hitIndex != _selectedControlPointIndex)
+                {
+                    _selectedControlPointIndex = hitIndex;
+                    Invalidate();
+                }
+                else if (hitIndex < 0 && _selectedControlPointIndex >= 0)
+                {
+                    _selectedControlPointIndex = -1;
+                    Invalidate();
+                }
+
+                Cursor = hitIndex >= 0 ? Cursors.Cross : Cursors.Default;
+            }
+            else
+            {
+                Cursor = Cursors.Default;
+            }
+        }
+    }
+
+    private void MoveShape(Shape shape, float dx, float dy)
+    {
+        var controlPoints = shape.ControlPoints;
+        for (int i = 0; i < controlPoints.Count; i++)
+        {
+            var pt = controlPoints[i];
+            shape.SetControlPoint(i, new PointF(pt.X + dx, pt.Y + dy));
         }
     }
 
@@ -331,6 +567,15 @@ internal class ImageCanvas : UserControl
         }
 
         _isDraggingControlPoint = false;
+        _isDraggingShapes = false;
+
+        // Update cursor based on current position
+        if (_image != null)
+        {
+            var imagePoint = ScreenToImage(e.Location);
+            _isHoveringMoveHandle = _selectedShapes.Count > 0 && HitTestMoveHandle(imagePoint);
+            Cursor = _isHoveringMoveHandle ? Cursors.SizeAll : Cursors.Default;
+        }
     }
 
     protected override void OnMouseWheel(MouseEventArgs e)
@@ -349,7 +594,7 @@ internal class ImageCanvas : UserControl
             var dy = (mouseImagePosAfter.Y - mouseImagePosBefore.Y) * _zoom;
             _panOffset = new PointF(_panOffset.X + dx, _panOffset.Y + dy);
 
-            Refresh(); // Use Refresh() for immediate repaint while zooming
+            Refresh();
         }
     }
 
