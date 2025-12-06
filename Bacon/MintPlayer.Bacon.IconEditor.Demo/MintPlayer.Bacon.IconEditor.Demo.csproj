@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MintPlayer.Bacon.IconEditor\MintPlayer.Bacon.IconEditor.csproj" />
+    <ProjectReference Include="..\MintPlayer.Bacon.IconParser\MintPlayer.Bacon.IconParser.csproj" />
+  </ItemGroup>
+
+</Project>

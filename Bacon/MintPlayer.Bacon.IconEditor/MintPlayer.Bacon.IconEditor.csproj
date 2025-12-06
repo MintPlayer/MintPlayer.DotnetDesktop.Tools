@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <Authors>Pieterjan De Clippel</Authors>
+    <Company>MintPlayer</Company>
+    <Description>A WinForms UserControl library for editing BaconIcon files</Description>
+    <RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>icon;editor;winforms;usercontrol</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MintPlayer.Bacon.Icons\MintPlayer.Bacon.Icons.csproj" />
+    <ProjectReference Include="..\MintPlayer.Bacon.ImageEditor\MintPlayer.Bacon.ImageEditor.csproj" />
+  </ItemGroup>
+
+</Project>
