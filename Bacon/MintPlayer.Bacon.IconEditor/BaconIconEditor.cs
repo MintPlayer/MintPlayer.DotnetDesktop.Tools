@@ -271,10 +271,17 @@ public class BaconIconEditor : UserControl
     }
 
     /// <summary>
-    /// Refresh the thumbnail list.
+    /// Refresh the thumbnail list (repopulates the list and repaints).
     /// </summary>
     public void RefreshThumbnails()
     {
-        _imageList.Invalidate();
+        var selectedImage = _imageList.SelectedItem as BaconImage;
+        RefreshImageList();
+
+        // Restore selection if possible
+        if (selectedImage != null && _imageList.Items.Contains(selectedImage))
+        {
+            _imageList.SelectedItem = selectedImage;
+        }
     }
 }
