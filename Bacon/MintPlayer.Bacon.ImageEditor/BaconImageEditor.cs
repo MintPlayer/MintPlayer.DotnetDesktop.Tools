@@ -127,6 +127,186 @@ public class BaconImageEditor : UserControl
                  ControlStyles.ResizeRedraw, true);
 
         BackColor = BackgroundColor;
+
+        SetupContextMenu();
+    }
+
+    private void SetupContextMenu()
+    {
+        var contextMenu = new ContextMenuStrip();
+
+        // Add Layer submenu
+        var addLayerMenu = new ToolStripMenuItem("Add Layer");
+        addLayerMenu.DropDownItems.Add("Shape Layer", null, OnAddShapeLayer);
+        addLayerMenu.DropDownItems.Add("Paint Layer", null, OnAddPaintLayer);
+
+        // Add Shape submenu (enabled only when a shape layer exists)
+        var addShapeMenu = new ToolStripMenuItem("Add Shape");
+        addShapeMenu.DropDownItems.Add("Line Segment", null, (s, e) => OnAddShape("LineSegment"));
+        addShapeMenu.DropDownItems.Add("Curve", null, (s, e) => OnAddShape("Curve"));
+        addShapeMenu.DropDownItems.Add("Circle Segment", null, (s, e) => OnAddShape("CircleSegment"));
+        addShapeMenu.DropDownItems.Add(new ToolStripSeparator());
+        addShapeMenu.DropDownItems.Add("Rectangle", null, (s, e) => OnAddShape("Polygon"));
+        addShapeMenu.DropDownItems.Add("Circle", null, (s, e) => OnAddShape("Circle"));
+        addShapeMenu.DropDownItems.Add("Closed Curve", null, (s, e) => OnAddShape("ClosedCurve"));
+
+        var deleteShapeItem = new ToolStripMenuItem("Delete Selected Shape", null, OnDeleteSelectedShape);
+
+        contextMenu.Opening += (s, e) =>
+        {
+            addLayerMenu.Enabled = _image != null;
+            addShapeMenu.Enabled = _image?.Layers.OfType<ShapeLayer>().Any() == true;
+            deleteShapeItem.Enabled = _selectedShape != null;
+        };
+
+        contextMenu.Items.AddRange(new ToolStripItem[]
+        {
+            addLayerMenu,
+            addShapeMenu,
+            new ToolStripSeparator(),
+            deleteShapeItem
+        });
+
+        ContextMenuStrip = contextMenu;
+    }
+
+    private void OnAddShapeLayer(object? sender, EventArgs e)
+    {
+        if (_image == null) return;
+
+        var layer = new ShapeLayer
+        {
+            Name = $"Shape Layer {_image.Layers.Count + 1}"
+        };
+        _image.Layers.Add(layer);
+        _selectedLayerIndex = _image.Layers.Count - 1;
+        Invalidate();
+        ImageModified?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnAddPaintLayer(object? sender, EventArgs e)
+    {
+        if (_image == null) return;
+
+        var layer = new PaintLayer
+        {
+            Name = $"Paint Layer {_image.Layers.Count + 1}"
+        };
+        _image.Layers.Add(layer);
+        _selectedLayerIndex = _image.Layers.Count - 1;
+        Invalidate();
+        ImageModified?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnAddShape(string shapeType)
+    {
+        if (_image == null) return;
+
+        // Find the first shape layer or create one
+        var shapeLayer = _image.Layers.OfType<ShapeLayer>().FirstOrDefault();
+        if (shapeLayer == null)
+        {
+            shapeLayer = new ShapeLayer { Name = "Shape Layer 1" };
+            _image.Layers.Add(shapeLayer);
+        }
+
+        Shape shape;
+        var centerX = _image.Width / 2f;
+        var centerY = _image.Height / 2f;
+        var size = Math.Min(_image.Width, _image.Height) / 3f;
+
+        switch (shapeType)
+        {
+            case "LineSegment":
+                shape = new LineSegment
+                {
+                    Start = new SerializablePoint(centerX - size, centerY),
+                    End = new SerializablePoint(centerX + size, centerY),
+                    Pen = new SerializablePen(Color.Black, 2)
+                };
+                break;
+            case "Curve":
+                shape = new Curve
+                {
+                    Points =
+                    [
+                        new SerializablePoint(centerX - size, centerY),
+                        new SerializablePoint(centerX - size / 2, centerY - size),
+                        new SerializablePoint(centerX + size / 2, centerY + size),
+                        new SerializablePoint(centerX + size, centerY)
+                    ],
+                    Pen = new SerializablePen(Color.Black, 2)
+                };
+                break;
+            case "CircleSegment":
+                shape = new CircleSegment
+                {
+                    Point1 = new SerializablePoint(centerX - size, centerY),
+                    Point2 = new SerializablePoint(centerX, centerY - size),
+                    Point3 = new SerializablePoint(centerX + size, centerY),
+                    Pen = new SerializablePen(Color.Black, 2)
+                };
+                break;
+            case "Polygon":
+                // Create a rectangle
+                shape = new Polygon
+                {
+                    Points =
+                    [
+                        new SerializablePoint(centerX - size, centerY - size / 2),
+                        new SerializablePoint(centerX + size, centerY - size / 2),
+                        new SerializablePoint(centerX + size, centerY + size / 2),
+                        new SerializablePoint(centerX - size, centerY + size / 2)
+                    ],
+                    Pen = new SerializablePen(Color.Black, 2),
+                    Fill = new SerializableSolidBrush(Color.FromArgb(128, 100, 150, 200))
+                };
+                break;
+            case "Circle":
+                shape = new Circle
+                {
+                    Center = new SerializablePoint(centerX, centerY),
+                    EdgePoint = new SerializablePoint(centerX + size, centerY),
+                    Pen = new SerializablePen(Color.Black, 2),
+                    Fill = new SerializableSolidBrush(Color.FromArgb(128, 100, 150, 200))
+                };
+                break;
+            case "ClosedCurve":
+                shape = new ClosedCurve
+                {
+                    Points =
+                    [
+                        new SerializablePoint(centerX, centerY - size),
+                        new SerializablePoint(centerX + size, centerY),
+                        new SerializablePoint(centerX, centerY + size),
+                        new SerializablePoint(centerX - size, centerY)
+                    ],
+                    Pen = new SerializablePen(Color.Black, 2),
+                    Fill = new SerializableSolidBrush(Color.FromArgb(128, 100, 150, 200))
+                };
+                break;
+            default:
+                return;
+        }
+
+        shapeLayer.Shapes.Add(shape);
+        SelectedShape = shape;
+        ImageModified?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void OnDeleteSelectedShape(object? sender, EventArgs e)
+    {
+        if (_image == null || _selectedShape == null) return;
+
+        foreach (var layer in _image.Layers.OfType<ShapeLayer>())
+        {
+            if (layer.Shapes.Remove(_selectedShape))
+            {
+                SelectedShape = null;
+                ImageModified?.Invoke(this, EventArgs.Empty);
+                break;
+            }
+        }
     }
 
     /// <summary>
