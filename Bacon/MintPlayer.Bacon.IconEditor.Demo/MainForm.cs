@@ -1,92 +1,215 @@
 namespace MintPlayer.Bacon.IconEditor.Demo;
 
-public class MainForm : Form
+public partial class MainForm : Form
 {
-    private readonly MenuStrip _menuStrip;
-    private readonly ToolStrip _toolStrip;
-    private readonly StatusStrip _statusStrip;
-    private readonly ToolStripStatusLabel _statusLabel;
     private int _childFormCount;
 
     public MainForm()
     {
-        Text = "Bacon Icon Editor";
-        Size = new Size(1280, 900);
-        StartPosition = FormStartPosition.CenterScreen;
-        IsMdiContainer = true;
-
-        // Create menu strip
-        _menuStrip = CreateMenuStrip();
-
-        // Create tool strip
-        _toolStrip = CreateToolStrip();
-
-        // Create status strip
-        _statusStrip = new StatusStrip();
-        _statusLabel = new ToolStripStatusLabel("Ready");
-        _statusStrip.Items.Add(_statusLabel);
-
-        // Layout
-        Controls.Add(_toolStrip);
-        Controls.Add(_menuStrip);
-        Controls.Add(_statusStrip);
-
-        MainMenuStrip = _menuStrip;
-
-        // Handle MDI child activation
-        MdiChildActivate += OnMdiChildActivate;
-    }
-
-    private MenuStrip CreateMenuStrip()
-    {
-        var menuStrip = new MenuStrip();
-
-        // File menu
-        var fileMenu = new ToolStripMenuItem("&File");
-        fileMenu.DropDownItems.Add("&New Icon", null, (s, e) => NewIconEditor());
-        fileMenu.DropDownItems.Add("&Open...", null, (s, e) => OpenFile());
-        fileMenu.DropDownItems.Add(new ToolStripSeparator());
-        fileMenu.DropDownItems.Add("&Save", null, (s, e) => ActiveIconEditor?.SaveFile());
-        fileMenu.DropDownItems.Add("Save &As...", null, (s, e) => ActiveIconEditor?.SaveFileAs());
-        fileMenu.DropDownItems.Add(new ToolStripSeparator());
-        fileMenu.DropDownItems.Add("&Close", null, (s, e) => ActiveMdiChild?.Close());
-        fileMenu.DropDownItems.Add("Close A&ll", null, (s, e) => CloseAllChildren());
-        fileMenu.DropDownItems.Add(new ToolStripSeparator());
-        fileMenu.DropDownItems.Add("E&xit", null, (s, e) => Close());
-
-        // Window menu
-        var windowMenu = new ToolStripMenuItem("&Window");
-        windowMenu.DropDownItems.Add("&Cascade", null, (s, e) => LayoutMdi(MdiLayout.Cascade));
-        windowMenu.DropDownItems.Add("Tile &Horizontally", null, (s, e) => LayoutMdi(MdiLayout.TileHorizontal));
-        windowMenu.DropDownItems.Add("Tile &Vertically", null, (s, e) => LayoutMdi(MdiLayout.TileVertical));
-        windowMenu.DropDownItems.Add("&Arrange Icons", null, (s, e) => LayoutMdi(MdiLayout.ArrangeIcons));
-
-        // Help menu
-        var helpMenu = new ToolStripMenuItem("&Help");
-        helpMenu.DropDownItems.Add("&About", null, (s, e) => ShowAbout());
-
-        menuStrip.Items.AddRange(new ToolStripItem[] { fileMenu, windowMenu, helpMenu });
-        menuStrip.MdiWindowListItem = windowMenu;
-
-        return menuStrip;
-    }
-
-    private ToolStrip CreateToolStrip()
-    {
-        var toolStrip = new ToolStrip();
-
-        toolStrip.Items.Add(new ToolStripButton("New", null, (s, e) => NewIconEditor()) { ToolTipText = "New Icon Editor" });
-        toolStrip.Items.Add(new ToolStripButton("Open", null, (s, e) => OpenFile()) { ToolTipText = "Open File" });
-        toolStrip.Items.Add(new ToolStripButton("Save", null, (s, e) => ActiveIconEditor?.SaveFile()) { ToolTipText = "Save File" });
-        toolStrip.Items.Add(new ToolStripSeparator());
-        toolStrip.Items.Add(new ToolStripButton("Cascade", null, (s, e) => LayoutMdi(MdiLayout.Cascade)) { ToolTipText = "Cascade Windows" });
-        toolStrip.Items.Add(new ToolStripButton("Tile H", null, (s, e) => LayoutMdi(MdiLayout.TileHorizontal)) { ToolTipText = "Tile Horizontally" });
-        toolStrip.Items.Add(new ToolStripButton("Tile V", null, (s, e) => LayoutMdi(MdiLayout.TileVertical)) { ToolTipText = "Tile Vertically" });
-
-        return toolStrip;
+        InitializeComponent();
     }
 
     private FrmIconEditor? ActiveIconEditor => ActiveMdiChild as FrmIconEditor;
+
+    #region File Menu
+
+    private void NewToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        NewIconEditor();
+    }
+
+    private void OpenToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        OpenFile();
+    }
+
+    private void SaveToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        ActiveIconEditor?.SaveFile();
+    }
+
+    private void SaveAsToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        ActiveIconEditor?.SaveFileAs();
+    }
+
+    private void CloseToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        ActiveMdiChild?.Close();
+    }
+
+    private void CloseAllToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        CloseAllChildren();
+    }
+
+    private void ExitToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        Close();
+    }
+
+    #endregion
+
+    #region Edit Menu
+
+    private void UndoToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement undo
+    }
+
+    private void RedoToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement redo
+    }
+
+    private void CutToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement cut
+    }
+
+    private void CopyToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement copy
+    }
+
+    private void PasteToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement paste
+    }
+
+    private void SelectAllToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement select all
+    }
+
+    #endregion
+
+    #region View Menu
+
+    private void ToolBarToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        toolStrip.Visible = toolBarToolStripMenuItem.Checked;
+    }
+
+    private void StatusBarToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        statusStrip.Visible = statusBarToolStripMenuItem.Checked;
+    }
+
+    #endregion
+
+    #region Windows Menu
+
+    private void NewWindowToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        NewIconEditor();
+    }
+
+    private void CascadeToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        LayoutMdi(MdiLayout.Cascade);
+    }
+
+    private void TileVerticalToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        LayoutMdi(MdiLayout.TileVertical);
+    }
+
+    private void TileHorizontalToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        LayoutMdi(MdiLayout.TileHorizontal);
+    }
+
+    private void CloseAllWindowsToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        CloseAllChildren();
+    }
+
+    private void ArrangeIconsToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        LayoutMdi(MdiLayout.ArrangeIcons);
+    }
+
+    #endregion
+
+    #region Help Menu
+
+    private void ContentsToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Show help contents
+    }
+
+    private void IndexToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Show help index
+    }
+
+    private void SearchToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        // TODO: Show help search
+    }
+
+    private void AboutToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        ShowAbout();
+    }
+
+    #endregion
+
+    #region Toolbar
+
+    private void PrintToolStripButton_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement print
+    }
+
+    private void PrintPreviewToolStripButton_Click(object? sender, EventArgs e)
+    {
+        // TODO: Implement print preview
+    }
+
+    #endregion
+
+    #region Form Events
+
+    private void MainForm_MdiChildActivate(object? sender, EventArgs e)
+    {
+        UpdateStatusBar();
+    }
+
+    private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
+    {
+        foreach (var child in MdiChildren)
+        {
+            if (child is FrmIconEditor iconEditor && iconEditor.IsModified)
+            {
+                var result = MessageBox.Show(
+                    $"Save changes to {iconEditor.Text}?",
+                    "Save Changes",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        iconEditor.SaveFile();
+                        if (iconEditor.IsModified)
+                        {
+                            e.Cancel = true;
+                            return;
+                        }
+                        break;
+                    case DialogResult.Cancel:
+                        e.Cancel = true;
+                        return;
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Private Methods
 
     private void NewIconEditor()
     {
@@ -138,22 +261,17 @@ public class MainForm : Form
         }
     }
 
-    private void OnMdiChildActivate(object? sender, EventArgs e)
-    {
-        UpdateStatusBar();
-    }
-
     private void UpdateStatusBar()
     {
         var childCount = MdiChildren.Length;
         if (childCount == 0)
         {
-            _statusLabel.Text = "Ready - No documents open";
+            toolStripStatusLabel.Text = "Ready - No documents open";
         }
         else
         {
             var activeChild = ActiveMdiChild;
-            _statusLabel.Text = $"Documents: {childCount} | Active: {activeChild?.Text ?? "None"}";
+            toolStripStatusLabel.Text = $"Documents: {childCount} | Active: {activeChild?.Text ?? "None"}";
         }
     }
 
@@ -168,36 +286,5 @@ public class MainForm : Form
             MessageBoxIcon.Information);
     }
 
-    protected override void OnFormClosing(FormClosingEventArgs e)
-    {
-        // Check if any child forms have unsaved changes
-        foreach (var child in MdiChildren)
-        {
-            if (child is FrmIconEditor iconEditor && iconEditor.IsModified)
-            {
-                var result = MessageBox.Show(
-                    $"Save changes to {iconEditor.Text}?",
-                    "Save Changes",
-                    MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Question);
-
-                switch (result)
-                {
-                    case DialogResult.Yes:
-                        iconEditor.SaveFile();
-                        if (iconEditor.IsModified)
-                        {
-                            e.Cancel = true;
-                            return;
-                        }
-                        break;
-                    case DialogResult.Cancel:
-                        e.Cancel = true;
-                        return;
-                }
-            }
-        }
-
-        base.OnFormClosing(e);
-    }
+    #endregion
 }

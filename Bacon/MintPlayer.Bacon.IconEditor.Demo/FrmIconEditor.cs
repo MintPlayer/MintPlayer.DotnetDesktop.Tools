@@ -1,5 +1,3 @@
-using System.Drawing;
-using System.Drawing.Imaging;
 using MintPlayer.Bacon.Icons;
 using MintPlayer.Bacon.IconParser;
 using MintPlayer.Bacon.IconParser.Enums;
@@ -8,14 +6,8 @@ using MintPlayer.Bacon.Images.Layers;
 
 namespace MintPlayer.Bacon.IconEditor.Demo;
 
-public class FrmIconEditor : Form
+public partial class FrmIconEditor : Form
 {
-    private readonly BaconIconEditor _iconEditor;
-    private readonly MenuStrip _menuStrip;
-    private readonly ToolStrip _toolStrip;
-    private readonly StatusStrip _statusStrip;
-    private readonly ToolStripStatusLabel _statusLabel;
-
     private string? _currentFilePath;
     private bool _isModified;
 
@@ -23,135 +15,144 @@ public class FrmIconEditor : Form
 
     public FrmIconEditor()
     {
-        Text = "Bacon Icon Editor";
-        Size = new Size(1024, 768);
-        StartPosition = FormStartPosition.CenterScreen;
+        InitializeComponent();
+    }
 
-        // Create menu strip
-        _menuStrip = CreateMenuStrip();
+    #region Form Events
 
-        // Create tool strip
-        _toolStrip = CreateToolStrip();
-
-        // Create status strip
-        _statusStrip = new StatusStrip();
-        _statusLabel = new ToolStripStatusLabel("Ready");
-        _statusStrip.Items.Add(_statusLabel);
-
-        // Create icon editor
-        _iconEditor = new BaconIconEditor
-        {
-            Dock = DockStyle.Fill
-        };
-        _iconEditor.IconChanged += (s, e) => UpdateTitle();
-        _iconEditor.ImageModified += (s, e) =>
-        {
-            _isModified = true;
-            UpdateTitle();
-        };
-        _iconEditor.SelectedImageChanged += (s, e) => UpdateStatusBar();
-
-        // Layout
-        Controls.Add(_iconEditor);
-        Controls.Add(_toolStrip);
-        Controls.Add(_menuStrip);
-        Controls.Add(_statusStrip);
-
-        MainMenuStrip = _menuStrip;
-
-        // Start with a new icon
+    private void FrmIconEditor_Load(object? sender, EventArgs e)
+    {
         NewIcon();
     }
 
-    private MenuStrip CreateMenuStrip()
+    private void FrmIconEditor_FormClosing(object? sender, FormClosingEventArgs e)
     {
-        var menuStrip = new MenuStrip();
-
-        // File menu
-        var fileMenu = new ToolStripMenuItem("&File");
-        fileMenu.DropDownItems.Add("&New", null, (s, e) => NewIcon());
-        fileMenu.DropDownItems.Add("&Open...", null, (s, e) => OpenFileDialog());
-        fileMenu.DropDownItems.Add("Open &ICO...", null, (s, e) => OpenIcoFileDialog());
-        fileMenu.DropDownItems.Add(new ToolStripSeparator());
-        fileMenu.DropDownItems.Add("&Save", null, (s, e) => SaveFile());
-        fileMenu.DropDownItems.Add("Save &As...", null, (s, e) => SaveFileAs());
-        fileMenu.DropDownItems.Add(new ToolStripSeparator());
-        fileMenu.DropDownItems.Add("&Export to ICO...", null, (s, e) => ExportToIco());
-        fileMenu.DropDownItems.Add("Export Selected to &PNG...", null, (s, e) => ExportSelectedToPng());
-        fileMenu.DropDownItems.Add(new ToolStripSeparator());
-        fileMenu.DropDownItems.Add("E&xit", null, (s, e) => Close());
-
-        // Edit menu
-        var editMenu = new ToolStripMenuItem("&Edit");
-        editMenu.DropDownItems.Add("&Add Image...", null, (s, e) => AddImage());
-        editMenu.DropDownItems.Add("Add &Common Sizes", null, (s, e) => AddCommonSizes());
-        editMenu.DropDownItems.Add(new ToolStripSeparator());
-        editMenu.DropDownItems.Add("&Remove Selected Image", null, (s, e) => RemoveSelectedImage());
-
-        // View menu
-        var viewMenu = new ToolStripMenuItem("&View");
-        viewMenu.DropDownItems.Add("Zoom &In", null, (s, e) => _iconEditor.ImageEditor.Zoom *= 1.25f);
-        viewMenu.DropDownItems.Add("Zoom &Out", null, (s, e) => _iconEditor.ImageEditor.Zoom *= 0.8f);
-        viewMenu.DropDownItems.Add("&Fit to Window", null, (s, e) => _iconEditor.ImageEditor.ZoomToFit());
-        viewMenu.DropDownItems.Add("&Reset Zoom", null, (s, e) =>
+        if (!CheckSaveChanges())
         {
-            _iconEditor.ImageEditor.Zoom = 1.0f;
-            _iconEditor.ImageEditor.CenterImage();
-        });
-
-        // Help menu
-        var helpMenu = new ToolStripMenuItem("&Help");
-        helpMenu.DropDownItems.Add("&About", null, (s, e) => ShowAbout());
-
-        menuStrip.Items.AddRange(new ToolStripItem[] { fileMenu, editMenu, viewMenu, helpMenu });
-
-        return menuStrip;
+            e.Cancel = true;
+        }
     }
 
-    private ToolStrip CreateToolStrip()
+    #endregion
+
+    #region Icon Editor Events
+
+    private void IconEditor_IconChanged(object? sender, EventArgs e)
     {
-        var toolStrip = new ToolStrip();
-
-        toolStrip.Items.Add(new ToolStripButton("New", null, (s, e) => NewIcon()) { ToolTipText = "New Icon" });
-        toolStrip.Items.Add(new ToolStripButton("Open", null, (s, e) => OpenFileDialog()) { ToolTipText = "Open File" });
-        toolStrip.Items.Add(new ToolStripButton("Save", null, (s, e) => SaveFile()) { ToolTipText = "Save File" });
-        toolStrip.Items.Add(new ToolStripSeparator());
-        toolStrip.Items.Add(new ToolStripButton("Add", null, (s, e) => AddImage()) { ToolTipText = "Add Image" });
-        toolStrip.Items.Add(new ToolStripButton("Export PNG", null, (s, e) => ExportSelectedToPng()) { ToolTipText = "Export Selected to PNG" });
-        toolStrip.Items.Add(new ToolStripSeparator());
-        toolStrip.Items.Add(new ToolStripButton("Zoom In", null, (s, e) => _iconEditor.ImageEditor.Zoom *= 1.25f));
-        toolStrip.Items.Add(new ToolStripButton("Zoom Out", null, (s, e) => _iconEditor.ImageEditor.Zoom *= 0.8f));
-        toolStrip.Items.Add(new ToolStripButton("Fit", null, (s, e) => _iconEditor.ImageEditor.ZoomToFit()));
-
-        return toolStrip;
-    }
-
-    private void NewIcon()
-    {
-        if (!CheckSaveChanges()) return;
-
-        _iconEditor.Icon = new BaconIcon { Name = "New Icon" };
-        _currentFilePath = null;
-        _isModified = false;
         UpdateTitle();
+    }
+
+    private void IconEditor_ImageModified(object? sender, EventArgs e)
+    {
+        _isModified = true;
+        UpdateTitle();
+    }
+
+    private void IconEditor_SelectedImageChanged(object? sender, EventArgs e)
+    {
         UpdateStatusBar();
     }
 
-    private void OpenFileDialog()
+    #endregion
+
+    #region File Menu
+
+    private void NewToolStripMenuItem_Click(object? sender, EventArgs e)
     {
-        if (!CheckSaveChanges()) return;
-
-        using var dialog = new OpenFileDialog
-        {
-            Filter = "Bacon Icon Files (*.bicon)|*.bicon|All Files (*.*)|*.*",
-            Title = "Open Bacon Icon"
-        };
-
-        if (dialog.ShowDialog() == DialogResult.OK)
-        {
-            OpenFile(dialog.FileName);
-        }
+        NewIcon();
     }
+
+    private void OpenToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        OpenFileDialog();
+    }
+
+    private void OpenIcoToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        OpenIcoFileDialog();
+    }
+
+    private void SaveToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        SaveFile();
+    }
+
+    private void SaveAsToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        SaveFileAs();
+    }
+
+    private void ExportToIcoToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        ExportToIco();
+    }
+
+    private void ExportToPngToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        ExportSelectedToPng();
+    }
+
+    private void ExitToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        Close();
+    }
+
+    #endregion
+
+    #region Edit Menu
+
+    private void AddImageToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        AddImage();
+    }
+
+    private void AddCommonSizesToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        AddCommonSizes();
+    }
+
+    private void RemoveSelectedToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        RemoveSelectedImage();
+    }
+
+    #endregion
+
+    #region View Menu
+
+    private void ZoomInToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        iconEditor.ImageEditor.Zoom *= 1.25f;
+    }
+
+    private void ZoomOutToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        iconEditor.ImageEditor.Zoom *= 0.8f;
+    }
+
+    private void FitToWindowToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        iconEditor.ImageEditor.ZoomToFit();
+    }
+
+    private void ResetZoomToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        iconEditor.ImageEditor.Zoom = 1.0f;
+        iconEditor.ImageEditor.CenterImage();
+    }
+
+    #endregion
+
+    #region Help Menu
+
+    private void AboutToolStripMenuItem_Click(object? sender, EventArgs e)
+    {
+        ShowAbout();
+    }
+
+    #endregion
+
+    #region Public Methods
 
     public void OpenFile(string filePath)
     {
@@ -160,33 +161,17 @@ public class FrmIconEditor : Form
             var icon = BaconIcon.LoadFromFile(filePath);
             if (icon != null)
             {
-                _iconEditor.Icon = icon;
+                iconEditor.Icon = icon;
                 _currentFilePath = filePath;
                 _isModified = false;
                 UpdateTitle();
-                _statusLabel.Text = $"Opened: {Path.GetFileName(filePath)}";
+                toolStripStatusLabel.Text = $"Opened: {Path.GetFileName(filePath)}";
             }
         }
         catch (Exception ex)
         {
             MessageBox.Show($"Error opening file: {ex.Message}", "Error",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private void OpenIcoFileDialog()
-    {
-        if (!CheckSaveChanges()) return;
-
-        using var dialog = new OpenFileDialog
-        {
-            Filter = "Icon Files (*.ico)|*.ico|All Files (*.*)|*.*",
-            Title = "Open ICO File"
-        };
-
-        if (dialog.ShowDialog() == DialogResult.OK)
-        {
-            OpenIcoFile(dialog.FileName);
         }
     }
 
@@ -209,7 +194,6 @@ public class FrmIconEditor : Form
                     Name = $"{imageWithType.Width}x{imageWithType.Height}"
                 };
 
-                // Create a paint layer with the imported bitmap
                 var paintLayer = new PaintLayer
                 {
                     Name = "Imported",
@@ -221,11 +205,11 @@ public class FrmIconEditor : Form
                 imageWithType.Dispose();
             }
 
-            _iconEditor.Icon = icon;
-            _currentFilePath = null; // ICO files are converted, not directly edited
+            iconEditor.Icon = icon;
+            _currentFilePath = null;
             _isModified = true;
             UpdateTitle();
-            _statusLabel.Text = $"Imported {images.Length} images from ICO file";
+            toolStripStatusLabel.Text = $"Imported {images.Length} images from ICO file";
         }
         catch (Exception ex)
         {
@@ -260,17 +244,64 @@ public class FrmIconEditor : Form
         }
     }
 
+    #endregion
+
+    #region Private Methods
+
+    private void NewIcon()
+    {
+        if (!CheckSaveChanges()) return;
+
+        iconEditor.Icon = new BaconIcon { Name = "New Icon" };
+        _currentFilePath = null;
+        _isModified = false;
+        UpdateTitle();
+        UpdateStatusBar();
+    }
+
+    private void OpenFileDialog()
+    {
+        if (!CheckSaveChanges()) return;
+
+        using var dialog = new OpenFileDialog
+        {
+            Filter = "Bacon Icon Files (*.bicon)|*.bicon|All Files (*.*)|*.*",
+            Title = "Open Bacon Icon"
+        };
+
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+            OpenFile(dialog.FileName);
+        }
+    }
+
+    private void OpenIcoFileDialog()
+    {
+        if (!CheckSaveChanges()) return;
+
+        using var dialog = new OpenFileDialog
+        {
+            Filter = "Icon Files (*.ico)|*.ico|All Files (*.*)|*.*",
+            Title = "Open ICO File"
+        };
+
+        if (dialog.ShowDialog() == DialogResult.OK)
+        {
+            OpenIcoFile(dialog.FileName);
+        }
+    }
+
     private void SaveToFile(string path)
     {
-        if (_iconEditor.Icon == null) return;
+        if (iconEditor.Icon == null) return;
 
         try
         {
-            _iconEditor.Icon.SaveToFile(path);
+            iconEditor.Icon.SaveToFile(path);
             _currentFilePath = path;
             _isModified = false;
             UpdateTitle();
-            _statusLabel.Text = $"Saved: {Path.GetFileName(path)}";
+            toolStripStatusLabel.Text = $"Saved: {Path.GetFileName(path)}";
         }
         catch (Exception ex)
         {
@@ -281,7 +312,7 @@ public class FrmIconEditor : Form
 
     private void ExportToIco()
     {
-        if (_iconEditor.Icon == null || _iconEditor.Icon.Images.Count == 0)
+        if (iconEditor.Icon == null || iconEditor.Icon.Images.Count == 0)
         {
             MessageBox.Show("No images to export.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
@@ -299,7 +330,7 @@ public class FrmIconEditor : Form
             {
                 var imagesWithType = new List<ImageWithType>();
 
-                foreach (var image in _iconEditor.Icon.Images)
+                foreach (var image in iconEditor.Icon.Images)
                 {
                     using var rendered = image.Render();
                     var bitmap = new Bitmap(rendered);
@@ -313,7 +344,7 @@ public class FrmIconEditor : Form
                     img.Dispose();
                 }
 
-                _statusLabel.Text = $"Exported to: {Path.GetFileName(dialog.FileName)}";
+                toolStripStatusLabel.Text = $"Exported to: {Path.GetFileName(dialog.FileName)}";
             }
             catch (Exception ex)
             {
@@ -325,7 +356,7 @@ public class FrmIconEditor : Form
 
     private void ExportSelectedToPng()
     {
-        var selectedImage = _iconEditor.SelectedImage;
+        var selectedImage = iconEditor.SelectedImage;
         if (selectedImage == null)
         {
             MessageBox.Show("No image selected.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -344,7 +375,7 @@ public class FrmIconEditor : Form
             try
             {
                 selectedImage.ExportToPng(dialog.FileName);
-                _statusLabel.Text = $"Exported to: {Path.GetFileName(dialog.FileName)}";
+                toolStripStatusLabel.Text = $"Exported to: {Path.GetFileName(dialog.FileName)}";
             }
             catch (Exception ex)
             {
@@ -356,14 +387,14 @@ public class FrmIconEditor : Form
 
     private void AddImage()
     {
-        if (_iconEditor.Icon == null) return;
+        if (iconEditor.Icon == null) return;
 
         using var dialog = new AddImageDialog();
         if (dialog.ShowDialog(this) == DialogResult.OK)
         {
-            var image = _iconEditor.Icon.AddImage(dialog.ImageWidth, dialog.ImageHeight);
-            _iconEditor.RefreshThumbnails();
-            _iconEditor.SelectedImage = image;
+            var image = iconEditor.Icon.AddImage(dialog.ImageWidth, dialog.ImageHeight);
+            iconEditor.RefreshThumbnails();
+            iconEditor.SelectedImage = image;
             _isModified = true;
             UpdateTitle();
         }
@@ -371,18 +402,18 @@ public class FrmIconEditor : Form
 
     private void AddCommonSizes()
     {
-        if (_iconEditor.Icon == null) return;
+        if (iconEditor.Icon == null) return;
 
-        _iconEditor.Icon.AddCommonSizes();
-        _iconEditor.RefreshThumbnails();
+        iconEditor.Icon.AddCommonSizes();
+        iconEditor.RefreshThumbnails();
         _isModified = true;
         UpdateTitle();
     }
 
     private void RemoveSelectedImage()
     {
-        var selectedImage = _iconEditor.SelectedImage;
-        if (selectedImage == null || _iconEditor.Icon == null) return;
+        var selectedImage = iconEditor.SelectedImage;
+        if (selectedImage == null || iconEditor.Icon == null) return;
 
         var result = MessageBox.Show(
             $"Are you sure you want to remove the {selectedImage.Width}x{selectedImage.Height} image?",
@@ -392,14 +423,14 @@ public class FrmIconEditor : Form
 
         if (result == DialogResult.Yes)
         {
-            _iconEditor.Icon.RemoveImage(selectedImage);
-            _iconEditor.RefreshThumbnails();
+            iconEditor.Icon.RemoveImage(selectedImage);
+            iconEditor.RefreshThumbnails();
             _isModified = true;
             UpdateTitle();
         }
     }
 
-    private void ShowAbout()
+    private static void ShowAbout()
     {
         MessageBox.Show(
             "Bacon Icon Editor\n\n" +
@@ -424,7 +455,7 @@ public class FrmIconEditor : Form
         {
             case DialogResult.Yes:
                 SaveFile();
-                return !_isModified; // Return true if save succeeded
+                return !_isModified;
             case DialogResult.No:
                 return true;
             default:
@@ -445,23 +476,16 @@ public class FrmIconEditor : Form
 
     private void UpdateStatusBar()
     {
-        var selectedImage = _iconEditor.SelectedImage;
+        var selectedImage = iconEditor.SelectedImage;
         if (selectedImage != null)
         {
-            _statusLabel.Text = $"Selected: {selectedImage.Width} x {selectedImage.Height} | Layers: {selectedImage.Layers.Count}";
+            toolStripStatusLabel.Text = $"Selected: {selectedImage.Width} x {selectedImage.Height} | Layers: {selectedImage.Layers.Count}";
         }
         else
         {
-            _statusLabel.Text = "Ready";
+            toolStripStatusLabel.Text = "Ready";
         }
     }
 
-    protected override void OnFormClosing(FormClosingEventArgs e)
-    {
-        if (!CheckSaveChanges())
-        {
-            e.Cancel = true;
-        }
-        base.OnFormClosing(e);
-    }
+    #endregion
 }
