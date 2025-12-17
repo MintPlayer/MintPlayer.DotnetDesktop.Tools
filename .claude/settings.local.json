@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet build:*)",
+      "Bash(cat:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(robocopy:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "github"
+  ]
+}

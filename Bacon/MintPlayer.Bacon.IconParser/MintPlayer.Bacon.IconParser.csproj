@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <Authors>Pieterjan De Clippel</Authors>
+    <Company>MintPlayer</Company>
+    <Description>A library for reading and writing ICO files</Description>
+    <RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>ico;icon;parser;reader;writer</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+</Project>
