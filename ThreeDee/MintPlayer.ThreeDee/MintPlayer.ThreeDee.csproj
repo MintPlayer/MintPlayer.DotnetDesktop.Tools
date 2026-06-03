@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<!-- Used for CI/CD on Ubuntu -->
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<ApplicationIcon />
+		<StartupObject />
+		<Authors>Pieterjan De Clippel</Authors>
+		<Company>MintPlayer</Company>
+		<Description>A SketchUp-style 3D modeling engine for WinForms: half-edge mesh, software rasterizer, camera/picking, and sketch + push/pull + follow-me tools.</Description>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/ThreeDee/MintPlayer.ThreeDee</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
+		<RepositoryType>Git</RepositoryType>
+		<PackageTags>3D modeling mesh rasterizer winforms sketchup half-edge</PackageTags>
+		<Version>10.0.0</Version>
+
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+</Project>
