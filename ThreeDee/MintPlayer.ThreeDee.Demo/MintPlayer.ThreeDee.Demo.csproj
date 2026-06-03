@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<!-- Used for CI/CD on Ubuntu -->
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MintPlayer.ThreeDee\MintPlayer.ThreeDee.csproj" />
+	</ItemGroup>
+
+</Project>
