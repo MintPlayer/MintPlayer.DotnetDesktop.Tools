@@ -174,26 +174,65 @@ public sealed class SoftwareRasterizer : IRenderer
         }
     }
 
-    /// <summary>DDA line into the framebuffer, optionally depth-tested with a given bias.</summary>
+    /// <summary>
+    /// Xiaolin Wu anti-aliased line into the framebuffer, optionally depth-tested with a given
+    /// bias. Each step plots the two pixels straddling the true line with complementary coverage,
+    /// blending the line colour over the existing pixel. Like the old DDA path, lines read but
+    /// never write the z-buffer, so partial-coverage pixels can't spuriously occlude geometry.
+    /// </summary>
     void DrawLine(PV p0, PV p1, int col, bool depthTest, float bias)
     {
         if (!p0.Ok || !p1.Ok) return;
-        float dx = p1.X - p0.X, dy = p1.Y - p0.Y;
-        int steps = (int)MathF.Ceiling(MathF.Max(MathF.Abs(dx), MathF.Abs(dy)));
-        if (steps <= 0) { Plot(p0.X, p0.Y, p0.Z, col, depthTest, bias); return; }
-        float ix = dx / steps, iy = dy / steps, iz = (p1.Z - p0.Z) / steps;
-        float x = p0.X, y = p0.Y, z = p0.Z;
-        for (int s = 0; s <= steps; s++, x += ix, y += iy, z += iz)
-            Plot(x, y, z, col, depthTest, bias);
+        float x0 = p0.X, y0 = p0.Y, z0 = p0.Z;
+        float x1 = p1.X, y1 = p1.Y, z1 = p1.Z;
+
+        // Iterate along the major axis so each column/row has exactly one straddling pair.
+        bool steep = MathF.Abs(y1 - y0) > MathF.Abs(x1 - x0);
+        if (steep) { (x0, y0) = (y0, x0); (x1, y1) = (y1, x1); }
+        if (x0 > x1) { (x0, x1) = (x1, x0); (y0, y1) = (y1, y0); (z0, z1) = (z1, z0); }
+
+        float dx = x1 - x0;
+        float gradient = dx == 0f ? 0f : (y1 - y0) / dx;
+        float zgrad = dx == 0f ? 0f : (z1 - z0) / dx;
+
+        int xStart = (int)MathF.Round(x0);
+        int xEnd = (int)MathF.Round(x1);
+        float yAxis = y0 + gradient * (xStart - x0);
+        for (int x = xStart; x <= xEnd; x++, yAxis += gradient)
+        {
+            float z = z0 + zgrad * (x - x0);
+            int yFloor = (int)MathF.Floor(yAxis);
+            float frac = yAxis - yFloor;
+            if (steep)
+            {
+                Plot(yFloor, x, z, col, 1f - frac, depthTest, bias);
+                Plot(yFloor + 1, x, z, col, frac, depthTest, bias);
+            }
+            else
+            {
+                Plot(x, yFloor, z, col, 1f - frac, depthTest, bias);
+                Plot(x, yFloor + 1, z, col, frac, depthTest, bias);
+            }
+        }
     }
 
-    void Plot(float fx, float fy, float z, int col, bool depthTest, float bias)
+    void Plot(int x, int y, float z, int col, float coverage, bool depthTest, float bias)
     {
-        int x = (int)fx, y = (int)fy;
+        if (coverage <= 0f) return;
         if ((uint)x >= (uint)_w || (uint)y >= (uint)_h) return;
         int pi = y * _w + x;
         if (depthTest && z > _zbuf[pi] + bias) return;
-        _color[pi] = col;
+        _color[pi] = coverage >= 1f ? col : Blend(_color[pi], col, coverage);
+    }
+
+    /// <summary>Alpha-blends <paramref name="fg"/> over <paramref name="bg"/> (both opaque ARGB).</summary>
+    static int Blend(int bg, int fg, float a)
+    {
+        float ia = 1f - a;
+        int r = (int)(((fg >> 16) & 0xFF) * a + ((bg >> 16) & 0xFF) * ia);
+        int g = (int)(((fg >> 8) & 0xFF) * a + ((bg >> 8) & 0xFF) * ia);
+        int b = (int)((fg & 0xFF) * a + (bg & 0xFF) * ia);
+        return unchecked((int)0xFF000000) | (r << 16) | (g << 8) | b;
     }
 
     unsafe void Blit()

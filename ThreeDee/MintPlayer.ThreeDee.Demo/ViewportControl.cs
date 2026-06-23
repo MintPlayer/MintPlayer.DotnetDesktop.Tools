@@ -95,6 +95,9 @@ public sealed class ViewportControl : Control
         sw.Stop();
         e.Graphics.DrawImageUnscaled(bmp, 0, 0);
 
+        // Smooth the GDI+ overlay lines (selection highlight + tool previews) to match the
+        // anti-aliased lines produced by the rasterizer.
+        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         SelectionOverlay.DrawSelection(e.Graphics, _camera, _selection);
         _tool.DrawOverlay(e.Graphics, _ctx);
 

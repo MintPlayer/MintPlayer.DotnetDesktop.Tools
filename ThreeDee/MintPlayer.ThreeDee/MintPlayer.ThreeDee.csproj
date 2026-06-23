@@ -19,7 +19,7 @@
 		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
 		<PackageTags>3D modeling mesh rasterizer winforms sketchup half-edge</PackageTags>
-		<Version>10.0.0</Version>
+		<Version>10.0.1</Version>
 
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
