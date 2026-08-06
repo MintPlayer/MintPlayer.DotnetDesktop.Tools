@@ -76,10 +76,22 @@ public sealed class FollowMeCommand(Mesh mesh, Face profile, IReadOnlyList<Vecto
 
             var T = new Vector3[m]; var U = new Vector3[m]; var V = new Vector3[m];
             T[0] = t0; U[0] = startU; V[0] = startV;
+
+            // Accumulate the composed transport rotation and apply it to the ORIGINAL basis, rather
+            // than re-transforming each station's frame from its predecessor. Both are the same
+            // rotation, but this way a single quaternion carries the error instead of three vectors
+            // drifting independently out of orthonormality — and normalizing a quaternion restores an
+            // exactly-orthonormal frame, which no comparably cheap fixup does for three loose vectors.
+            var transport = Quaternion.Identity;
+            Vector3 prevTangent = t0;
             for (int i = 1; i < m; i++)
             {
-                var qi = ShortestArc(Tangent(i - 1), Tangent(i));
-                T[i] = Vector3.Transform(T[i - 1], qi); U[i] = Vector3.Transform(U[i - 1], qi); V[i] = Vector3.Transform(V[i - 1], qi);
+                Vector3 tangent = Tangent(i);
+                transport = Quaternion.Normalize(ShortestArc(prevTangent, tangent) * transport);
+                T[i] = Vector3.Transform(t0, transport);
+                U[i] = Vector3.Transform(startU, transport);
+                V[i] = Vector3.Transform(startV, transport);
+                prevTangent = tangent;
             }
             for (int i = 0; i < m; i++)
                 for (int j = 0; j < n; j++)
@@ -143,16 +155,27 @@ public sealed class FollowMeCommand(Mesh mesh, Face profile, IReadOnlyList<Vecto
         return maxDev / extent < 1e-3f; // planar
     }
 
+    /// <summary>Unit quaternion rotating <paramref name="from"/> onto <paramref name="to"/> the short way.</summary>
+    /// <remarks>
+    /// Half-vector form: q = normalize((from × to, 1 + from·to)). The cross product has magnitude
+    /// sin θ and the scalar part is 1 + cos θ, so the norm is 2cos(θ/2) and normalizing leaves exactly
+    /// (sin(θ/2)·axis, cos(θ/2)). No acos, and no near-identity early-out — which matters because the
+    /// sweep COMPOSES these. A `d > 0.99999f → Identity` guard is harmless for a one-shot query but
+    /// destroys an accumulated transport: on a finely sampled path every step falls inside the guard,
+    /// and because the truncations all round the same way they accumulate instead of cancelling, so the
+    /// frame never turns at all. The antipodal case stays a branch because it is genuinely
+    /// underdetermined — every axis perpendicular to <paramref name="from"/> is an equally valid answer,
+    /// and no formulation can choose for you.
+    /// </remarks>
     static Quaternion ShortestArc(Vector3 from, Vector3 to)
     {
         from = Vector3.Normalize(from); to = Vector3.Normalize(to);
         float d = Vector3.Dot(from, to);
-        if (d > 0.99999f) return Quaternion.Identity;
         if (d < -0.99999f)
         {
             Vector3 perp = MathF.Abs(from.X) < 0.9f ? Vector3.UnitX : Vector3.UnitY;
             return Quaternion.CreateFromAxisAngle(Vector3.Normalize(Vector3.Cross(from, perp)), MathF.PI);
         }
-        return Quaternion.CreateFromAxisAngle(Vector3.Normalize(Vector3.Cross(from, to)), MathF.Acos(Math.Clamp(d, -1f, 1f)));
+        return Quaternion.Normalize(new Quaternion(Vector3.Cross(from, to), 1f + d));
     }
 }

@@ -15,11 +15,11 @@
 		<Company>MintPlayer</Company>
 		<Description>A SketchUp-style 3D modeling engine for WinForms: half-edge mesh, software rasterizer, camera/picking, and sketch + push/pull + follow-me tools.</Description>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/ThreeDee/MintPlayer.ThreeDee</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/tree/master/ThreeDee</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
 		<PackageTags>3D modeling mesh rasterizer winforms sketchup half-edge</PackageTags>
-		<Version>10.0.1</Version>
+		<Version>10.0.2</Version>
 
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>

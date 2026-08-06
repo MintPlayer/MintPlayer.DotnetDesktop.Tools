@@ -2,8 +2,10 @@
 
 **Status:** Decided v1.0
 **Date:** 2026-06-03
+**Last updated:** 2026-08-06 — added §1 "Rotation representation"; M9 row corrected (Follow-Me shipped); assertion count 109 → 114.
 **Owner:** pieterjan@2sky.be
 **Supersedes:** PRD §3 forks (now resolved), refines PRD §6 (modules) and §10 (open questions).
+**Companion documents:** [PRD.md](PRD.md) (requirements) · [quaternions.md](quaternions.md) (rotation theory reference)
 
 This document resolves the four technical forks from PRD §3 using the **measured** results of spikes S1–S7, fixes the final module/namespace breakdown with the `IRenderer` abstraction, lays out a milestone roadmap that maps every PRD feature to a shippable increment, and answers the PRD §10 open questions.
 
@@ -65,6 +67,22 @@ Rationale, citing measured numbers:
 - **S3 camera math — adopt as-is.** Project→unproject round-trip max error **1.776e-4** world units (tol 1e-3); orbit over 13,067 orientations had **no NaN, all matrices invertible**, no gimbal lock; zoom-to-cursor drift **7.6e-5 px**. Single precision is ample. Carry over the isolated `NdcToScreen`/`ScreenToNdc` Y-flip helpers, `SetCameraFromEyeTarget` inverse, ±89° elevation clamp, and remember `CreatePerspectiveFieldOfView` uses **D3D depth [0,1]** (unproject near at z=0, far at z=1).
 - **S6 inference — adopt as-is.** 7/7 PASS; priority-ordered short-circuit engine at **~1.7 µs/call**. F-independent. Feed it pixel-radius tolerances unprojected at candidate depth (S3) so far geometry doesn't snap too eagerly. AxisLock projects onto the axis line, so downstream typed-length must read `InferenceResult.WorldPoint`, not re-derive from the ray.
 - **S7 curves — adopt as-is.** 9/9 PASS; adaptive Bézier flattening (worst chord dev 6.29e-4 @ tol 1e-3), arc radius error ~1e-6, ~4.2 µs/flatten. One unified arc tuple `(center, radius, u, v, startAngle, sweep)` drives 3-point arc, bulge arc, full circle, and N-gon; store the tuple and re-tessellate on zoom against a back-projected pixel tolerance.
+
+### Rotation representation — deliberately not uniform
+
+There is no single rotation type used throughout. Each site picks the representation that is
+actually right for it, and the differences are load-bearing rather than historical:
+
+| Site | Representation | Why |
+|------|----------------|-----|
+| `Camera` orbit | spherical `(azimuth, elevation, distance)` + `Up = UnitY` | **Structurally forbids roll**, which is what a CAD orbit camera needs. A freely-orientable camera would make roll a free parameter that must be continually projected back out. It is also exactly what the UI edits and what `SceneIO` serializes. The ±89° elevation clamp (S3) is the cost, and it is cheap. |
+| `Camera` view/projection | `Matrix4x4` | What the projection pipeline consumes; `Vector4.Transform` per vertex. |
+| `RotateCommand` / `RotateTool` | `Matrix4x4.CreateFromAxisAngle` | One rotation applied to **many** vertices. A matrix-vector multiply is fewer flops per vertex than a quaternion sandwich product, and the build cost amortizes across the selection. Axis-angle input means there is no gimbal lock to avoid here — that is a defect of *Euler-angle* parameterizations, not of matrices. |
+| `Tessellation` circles/arcs | `cos`/`sin` against an orthonormal `(u,v)` basis | Every point is computed independently, so nothing accumulates. Incrementally rotating a start vector would drift and be slower. |
+| `FollowMeCommand` sweep | `Quaternion` | The one place rotations are **composed and accumulated** along a path. Renormalizing a single quaternion restores an exactly-orthonormal frame; three drifted basis vectors cannot be fixed as cheaply. See PRD §11.1 (R11.1-1, R11.1-3). |
+
+The full reasoning, including which rotation edge cases a representation change genuinely removes
+and which are topologically forced to stay, is in **[quaternions.md](quaternions.md)**.
 
 ---
 
@@ -158,11 +176,11 @@ Each milestone builds, runs, and demos something. PRD feature IDs in brackets.
 | **M6 — Inference + VCB** ✅ done | `Inference/InferenceEngine` (endpoint/midpoint/on-edge/on-face + axis lock, lifted from S6) feeding Line/Rectangle; back-projected pixel tolerance; snap indicators + red/green/blue on-axis rubber band; `ToolStripTextBox` VCB with type-to-start + live measurement, driving Line length, Rectangle w;d, Push/Pull distance. Parallel/perp + intersection snaps deferred. | §5.4 (most), §5.7 status bar/VCB |
 | **M7 — Curves + Move/Rotate/Eraser** ✅ done | `Math/Tessellation` (S7: adaptive Bézier, 3-point arc, circle/N-gon); `CircleTool` (→ N-gon face), `ArcTool` (3-point → wire), `BezierTool` (4-pt → wire); `MoveTool`/`RotateTool` (on selection, with VCB length/angle), `EraserTool` + Delete key; `EditCommands` (Move/Rotate/Delete/AddPolyline, all undoable). | §5.2 Circle/Polygon/Arc/Bézier, §5.3 Move/Rotate/Eraser |
 | **M8 — Save/Load** ✅ done | `Persistence/SceneIO` — native `.3dee` JSON (System.Text.Json): vertices + faces (index loops + color) + wires + camera; `Mesh.Clear`/`History.Clear`; File menu (New/Open/Save/Save As, Ctrl+N/O/S) with dialogs + title tracking. | §5.7 save/load |
-| **M9 — Polish & stretch** ✅ done (subset) | `MeshExport` Wavefront **OBJ** + ASCII **STL** (invariant decimals); `TapeMeasureTool` (distance readout + dimension overlay). Offset, Follow-Me, section planes, and components/instances remain documented future work. | §8 export (done), §5.3 Offset/Follow-Me + §5.6 sections (deferred) |
+| **M9 — Polish & stretch** ✅ done (subset) | `MeshExport` Wavefront **OBJ** + ASCII **STL** (invariant decimals); `TapeMeasureTool` (distance readout + dimension overlay); **Follow-Me** (`FollowMeCommand`/`FollowMeTool`, later corrected per PRD §11.1). Offset, section planes, and components/instances remain documented future work. | §8 export (done), §5.3 Follow-Me (done), §5.3 Offset + §5.6 sections (deferred) |
 
 Critical-path ordering rationale: M1 ships the gated F1/F2/S3 result on screen first; M2–M3 lay the topology + picking spine; M4 introduces commands *before* mutation tools so undo exists from the first edit; M5 (push/pull) is intentionally early as the headline; inference (M6) follows because it most improves *existing* drawing/edit tools.
 
-**Status (all milestones M1–M9 complete, plus follow-up features).** The app is a working SketchUp-style modeler: orbit/pan/zoom + standard views/projection; Line/Rectangle/Circle/Arc/Bézier drawing with inference snapping + a VCB for exact dimensions; **selectable construction plane (XZ/XY/YZ)** so shapes can be drawn on vertical planes; **auto-fill of closed planar wire loops** (draw an arc, close it with a line → face); Push/Pull; **Follow-Me** (sweep a profile along a path via parallel-transport frames); Move/Rotate/Eraser; selection + undo/redo; 4 render styles; native `.3dee` save/load; OBJ/STL export; tape measure. Hand-rolled BCL-only regression harness (`tests/ThreeDee.Tests`, 109 assertions). Deferred for the future: face-split when drawing *across* an existing face, coplanar-edge dissolve/merge, Offset, section planes, components/instances, depth-tested selection highlight, and textures (an explicit v1 non-goal).
+**Status (all milestones M1–M9 complete, plus follow-up features).** The app is a working SketchUp-style modeler: orbit/pan/zoom + standard views/projection; Line/Rectangle/Circle/Arc/Bézier drawing with inference snapping + a VCB for exact dimensions; **selectable construction plane (XZ/XY/YZ)** so shapes can be drawn on vertical planes; **auto-fill of closed planar wire loops** (draw an arc, close it with a line → face); Push/Pull; **Follow-Me** (sweep a profile along a path via parallel-transport frames, or an exact surface of revolution when the path is planar and closed — see PRD §11.1); Move/Rotate/Eraser; selection + undo/redo; 4 render styles; native `.3dee` save/load; OBJ/STL export; tape measure. Hand-rolled BCL-only regression harness (`tests/ThreeDee.Tests`, 114 assertions). Deferred for the future: face-split when drawing *across* an existing face, coplanar-edge dissolve/merge, Offset, section planes, components/instances, depth-tested selection highlight, and textures (an explicit v1 non-goal).
 
 ---
 

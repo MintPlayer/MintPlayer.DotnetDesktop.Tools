@@ -2,9 +2,13 @@
 
 **A SketchUp-style 3D modeling application built from scratch in C# / WinForms (.NET 10), with no third-party libraries.**
 
-Status: Draft v0.1
+Status: Draft v0.1 — **all features in §5 and §11 are implemented** (see ARCHITECTURE.md §4 roadmap)
 Date: 2026-06-03
+Last updated: 2026-08-06 — §4 math stack clarified; §11.1 marked implemented and R11.1-3 added
 Owner: pieterjan@2sky.be
+
+Companion documents: [ARCHITECTURE.md](ARCHITECTURE.md) (fork resolutions, modules, roadmap) ·
+[quaternions.md](quaternions.md) (rotation theory reference)
 
 ---
 
@@ -54,7 +58,16 @@ The renderer fork (F1) is foundational and gated first.
 
 ## 4. Core concepts / domain model
 
-- **Vector / Matrix math** — `System.Numerics.Vector3`, `Matrix4x4`, `Quaternion`.
+- **Vector / Matrix math** — `System.Numerics.Vector3`, `Matrix4x4`, `Quaternion`. Each is used
+  where it is actually the right tool, which is *not* uniformly: `Matrix4x4` for the camera's
+  view/projection and for applying one fixed rotation to many vertices (a matrix-vector multiply is
+  fewer flops per vertex than a quaternion sandwich product, and the build cost amortizes over the
+  whole selection); plain `cos`/`sin` against an orthonormal plane basis for circles and arcs, so
+  each point is independent of its predecessors; spherical `(azimuth, elevation, distance)` for the
+  orbit camera, which structurally forbids roll — a freely-orientable camera would permit it and
+  need extra work to project it back out. `Quaternion` is used where rotations are **composed or
+  accumulated**, which in practice means the Follow-Me sweep (§11.1). See
+  [quaternions.md](quaternions.md) for the reasoning behind that split.
 - **Scene graph** — flat list of *entities* (Edges, Faces, Groups) in world space for v1;
   groups/components as a stretch goal.
 - **Mesh** — vertices, edges, faces with adjacency (topology TBD by F3). Faces are planar
@@ -198,6 +211,11 @@ drop-in algorithms. This section captures the corrected behaviour as implementat
 requirements. It refines §5.3 (Follow Me) and §5.5 (Selection); it does not change the
 fork decisions or module layout in ARCHITECTURE.md.
 
+> **Implementation status: all requirements in this section are shipped.** R11.1-1 and R11.1-2 are
+> the two branches of `FollowMeCommand.Do()`; R11.1-3 (2026-08-06) corrected the transport numerics.
+> R11.2-1…3 are `Mesh.ConnectedEdgePath` + `SelectTool.OnDoubleClick`. Covered by the regression
+> harness — the revolution fixture measures `maxRelErr = 2.384E-7` against the 1e-2 bar below.
+
 ### 11.1 Follow-Me: preserve profile offset / revolve about a planar path axis
 
 **Problem being fixed.** `FollowMeCommand.Do()` recenters every cross-section ring onto its
@@ -218,9 +236,14 @@ coordinates, including the tangential and radial offset:
    `(u0,v0)` rotated by `ShortestArc(profileNormal, T0)`.
 2. For each profile vertex `p_j`, store three locals against the full frame:
    `l1 = Dot(p_j-pts[0], T0)`, `l2 = Dot(p_j-pts[0], U0)`, `l3 = Dot(p_j-pts[0], V0)`.
-3. Parallel-transport the **whole** frame `(T,U,V)` station-to-station with the existing
-   `ShortestArc(Tangent(i-1), Tangent(i))` quaternions (currently only `u,v` are transported;
-   `T` must be transported too).
+3. Parallel-transport the **whole** frame `(T,U,V)` station-to-station with
+   `ShortestArc(Tangent(i-1), Tangent(i))` quaternions (originally only `u,v` were transported;
+   `T` must be transported too). Accumulate the composed rotation
+   `transport = Normalize(ShortestArc(...) * transport)` and apply it to the **START** basis
+   (`T[i] = Rot(transport)·T0`, likewise `U0`/`V0`) rather than re-rotating station `i-1`'s frame
+   into station `i`. Both express the same rotation, but the accumulated form keeps the error in a
+   single quaternion that renormalizing restores exactly, instead of letting three basis vectors
+   drift independently out of orthonormality (see R11.1-3).
 4. Place each vertex at `pts[i] + l1*T[i] + l2*U[i] + l3*V[i]`.
 
 This is spike candidate **B (MOVING-FRAME SWEEP)** and is the minimal correct fix. It
@@ -234,6 +257,44 @@ When the path is planar **and** closed, snap to exact surface-of-revolution
 `(P_i-Center)` (`atan2(r_i·r0perp, r_i·r0n)`), place
 `q_j(i) = Center + Rot(axis, angle_i)·(p_j - Center)`. Production rule: **if path is planar and
 closed → revolve (C); else moving-frame sweep (B).**
+
+**R11.1-3 — `ShortestArc` must be threshold-free, and transport must accumulate (numerical).**
+`ShortestArc` originally early-returned `Quaternion.Identity` when `Dot(from,to) > 0.99999f`
+(θ ≲ 0.2565°) to dodge normalizing a vanishing cross product. That guard is harmless for a
+one-shot query but **destroys an accumulated transport**: on a path sampled finely enough that
+*every* consecutive tangent pair falls inside the guard, every step returns identity and the frame
+never turns at all. The truncations do not cancel — they all round the same way — so the error
+accumulates to 100% of the intended rotation, silently, with no NaN and no exception. Measured on
+a quarter-circle path whose tangent must turn 90° end to end:
+
+| Path stations | Per-step tangent turn | Turn achieved (guarded) | Turn achieved (fixed) | Expected |
+|---------------|----------------------|-------------------------|-----------------------|----------|
+| 25 | 3.7500° | 86.249° | 86.250° | 86.250° |
+| 100 | 0.9089° | 89.070° | 89.091° | 89.091° |
+| 400 | 0.2238° | **0.000°** | 89.775° | 89.774° |
+| 20 000 | ≈0° | **0.000°** | 90.002° | 90.000° |
+
+Two required changes:
+1. Build the rotation in the **half-vector form** `q = Normalize(Quaternion(from × to, 1 + from·to))`.
+   Since `|from × to| = sin θ` and the scalar part is `1 + cos θ`, the norm is `2cos(θ/2)` and
+   normalizing leaves exactly `(sin(θ/2)·axis, cos(θ/2))` — no `acos`, no normalizing a vanishing
+   cross product, and **no small-angle branch**: as θ → 0 the expression tends to the identity
+   continuously. The antipodal branch (`d < -0.99999f`) stays, because that case is genuinely
+   underdetermined — every axis perpendicular to `from` is an equally valid answer.
+2. Accumulate one normalized quaternion per R11.1-1 step 3 instead of re-rotating each station's
+   frame from its predecessor. Measured max deviation from orthonormality along the transported
+   frame (`float`):
+
+| Path stations | Per-step re-transformation | Accumulated + renormalized |
+|---------------|---------------------------|----------------------------|
+| 25 | 5.96E-7 | 2.38E-7 |
+| 100 | 2.92E-6 | 2.38E-7 |
+| 5 000 | 1.81E-5 | 3.58E-7 |
+| 20 000 | — | 2.38E-7 |
+
+The per-step form degrades linearly with path length; the accumulated form stays pinned at float
+machine epsilon at every length tested. Acceptance: sweep quality must not depend on path sampling
+density — a path resampled finer must not turn *less*.
 
 **Acceptance criteria (from spike, bar = 1e-2 sphericity).**
 Fixture: 64-gon circular path (R=1) + 33-point semicircle profile (R=1), ~2112 surface verts,
