@@ -3,9 +3,13 @@
 **Make this repository testable, report coverage to `coverage.mintplayer.com`, and bring the
 workspace onto .NET 11 — as one pull request.**
 
-Status: Draft v0.2 — supersedes `PRD-code-coverage.md` (deleted). Decision tree resolved 2026-09-18.
+Status: v0.3 — **implemented**. Decision tree resolved 2026-09-18; M0–M7 landed the same day.
 Date: 2026-09-18
 Owner: pieterjan@2sky.be
+
+> **Implementation changed two decisions.** The M1 spike disproved §3.2's assumption, and the
+> exclusion mechanism in §6.1 does not exist on this stack. Both are corrected in place below
+> and summarised in §13. The plan is otherwise as executed.
 
 ---
 
@@ -38,11 +42,11 @@ Scope grew deliberately during design review and now covers three things in one 
 
 | # | Decision | Rationale |
 |---|---|---|
-| **D1** | **coverlet.collector**, `--collect:"XPlat Code Coverage"`, format cobertura | What every other MintPlayer repo uses and what the upload action expects. Instruments IL at the test host, so `net*-windows` TFMs are irrelevant to it. Rejected `dotnet-coverage` (tool install, clunkier filters) and AltCover (build-time rewriting collides with `dotnet pack --no-build`). |
+| ~~**D1**~~ | ~~**coverlet.collector**, `--collect:"XPlat Code Coverage"`~~ → **superseded by §3.2: Microsoft.Testing.Extensions.CodeCoverage**, still cobertura | What every other MintPlayer repo uses and what the upload action expects. Instruments IL at the test host, so `net*-windows` TFMs are irrelevant to it. Rejected `dotnet-coverage` (tool install, clunkier filters) and AltCover (build-time rewriting collides with `dotnet pack --no-build`). |
 | **D2** | Test job on **`windows-latest`** | Everything worth covering is `net*-windows`. `EnableWindowsTargeting` compiles those on Ubuntu; it does not provide a runtime. Build/pack/push stay on `ubuntu-latest`. |
 | **D5** | Root **`global.json`** pinning `11.0.100-rc.1.26425.128`, `rollForward: latestFeature`, `allowPrerelease: true` | Copied verbatim from `MintPlayer.AspNetCore.Tools`. Without it, local builds silently use a different major than CI — a defect that repo's PR #31 fixed on its own side. |
 | **D6** | One **reusable `workflow_call`** workflow | The four workflows are copy-paste clones; every change here lands in all four. The org already shows this drifting: `Dotnet.Tools` installs only the .NET 11 SDK while `AspNetCore.Tools` correctly installs `10.0.x` alongside. A deviation from org practice, accepted. |
-| **D7** | Runsettings: `UseSourceLink=false`, **no** `ExcludeByAttribute`, `DeterministicReport=false` | The service's documented constraints override generic best practice — see §6.1. |
+| ~~**D7**~~ | ~~Runsettings: `UseSourceLink=false`, no `ExcludeByAttribute`, `DeterministicReport=false`~~ → **moot**; these are coverlet knobs with no equivalent on MTP coverage (§3.2, §6.1a) | The service's documented constraints override generic best practice — see §6.1. |
 | **D8** | Every test project sets **`<IsPackable>false</IsPackable>`** explicitly, plus a filename guard in `Directory.Build.props` | Matches the existing convention (all seven non-packable projects do this). `publish-release.yml` pushes `**/*.nupkg` to nuget.org; a packable test project would be published irreversibly. |
 | **D9** | **Statics become instance classes behind interfaces. Breaking changes allowed.** | `PlatformBrowser` and `IconExtractor` are `public static class` — nothing can be injected into them. Follows the existing `IQuineMcCluskeySolver` pattern. Major version bumps expected. |
 | **D10** | **Upgrade to .NET 11**; packable libraries multi-target, test/demo projects do not | .NET 11 is STS (EOL 2028-11-09); .NET 10 is LTS (EOL 2028-11-14). Single-targeting `net11.0` would *shorten* the packages' supported life and drop every net10.0 consumer. |
@@ -86,16 +90,34 @@ duplicate** `ToFormattedString` inside `#if WINDOWS`. Fix the condition, delete 
 this lands, the 54 lines of `PackageVersionExtensions` are uncoverable — you cannot test code that
 is in no assembly.
 
-### 3.2 xUnit v3 vs the coverage collector (gates everything)
+### 3.2 xUnit v3 vs the coverage collector — SUPERSEDED BY THE M1 SPIKE
 
-**xUnit v3 defaults to Microsoft.Testing.Platform. `--collect:"XPlat Code Coverage"` is a VSTest
-data collector.** Under MTP it does not attach — the result is a green test run and **no
-`coverage.cobertura.xml` at all**, which the `hashFiles(…)` guard then turns into a silently skipped
-upload. M1 must prove the chosen combination emits a report before any suite is ported.
+This section predicted that xUnit v3 merely *defaults* to Microsoft.Testing.Platform, leaving a
+VSTest path available for coverlet. **That is wrong, and the spike proved it:**
 
-Two ways out, decided in M1: keep the VSTest path (reference a v3-compatible
-`xunit.runner.visualstudio`, do not set `UseMicrosoftTestingPlatformRunner`), or switch to
-MTP-native coverage — which is a *different* collector from every other MintPlayer repo.
+```
+error : Testing with VSTest target is no longer supported by Microsoft.Testing.Platform
+on .NET 10 SDK and later.
+```
+
+The VSTest bridge is **removed** on SDK 10+, so there is no "keep the VSTest path" option, and D1
+(coverlet.collector) is unreachable while D15 (xUnit v3) stands. What was actually built:
+
+- Coverage comes from **Microsoft.Testing.Extensions.CodeCoverage**, driven by MTP command-line
+  arguments (`--coverage --coverage-output-format cobertura`). Still cobertura, so the upload
+  action is unaffected.
+- There is **no `coverlet.runsettings`**. D7's `UseSourceLink` / `DeterministicReport` /
+  `ExcludeByAttribute` guidance describes coverlet knobs that have no equivalent here, and §6.1
+  below is superseded by §6.1a.
+- `dotnet test` must be opted into the MTP runner, and the opt-in lives in **`global.json`**
+  (`"test": { "runner": "Microsoft.Testing.Platform" }`), not in a `dotnet.config`. The SDK target
+  that raises the error keys off `_SupportsGlobalJsonTestRunner`.
+- xUnit v3 requires `<OutputType>Exe</OutputType>` to be set **explicitly**; it does not infer it.
+  D18's symbol-package guard still excludes test projects, but only because we set it.
+
+**The failure mode is silent.** A test host that rejects an option reports `Zero tests ran` with a
+handshake failure, not an error naming the option. That is R1 in practice, and it bit twice during
+implementation.
 
 ### 3.3 `net11.0-windows` is viable — verified locally
 
@@ -187,7 +209,10 @@ executable code**, so it has no sequence points and needs no test project.
 
 ## 6. Configuration artifacts
 
-### 6.1 `coverlet.runsettings` (repo root)
+### 6.1 `coverlet.runsettings` (repo root) — NOT BUILT, see §6.1a
+
+> Kept for the reasoning behind each filter, which still explains *what* has to be excluded
+> and why. The mechanism does not apply: coverlet cannot attach on this stack (§3.2).
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -230,6 +255,29 @@ Why each filter here specifically:
 - Glob separators must be forward slashes. **No source generators exist in this repo**
   (`Microsoft.WinForms.Designer.SDK` is designer tooling, not a generator), so the `obj/**` globs
   are hygiene, not a live problem.
+
+### 6.1a Exclusions as built — SUPERSEDES §6.1
+
+§6.1's `coverlet.runsettings` was never created: coverlet cannot attach at all (§3.2). The
+Microsoft collector takes its configuration through `--coverage-settings`, and **that option is
+rejected at startup by version 18.11.2** — the option name exists in the extension assembly, but
+passing it produces `Zero tests ran` and a handshake failure regardless of path form or schema.
+
+Both exclusions the report actually needed have a better home than a settings file anyway:
+
+| Needed exclusion | How it is done |
+|---|---|
+| `MintPlayer.ThreeDee.Demo` (18 files) | **Removed the dependency.** It was only referenced for `DemoScene.Build()` — 20 lines with no WinForms dependency — which now lives in the test project as `TestScene`. The tests no longer depend on an application. |
+| WinForms `*.Designer.cs` | `[ExcludeFromCodeCoverage]` on the designer partial classes, which the Microsoft collector honours. |
+
+Everything else §6.1 filtered for turned out not to need filtering: an assembly with no test
+project is never loaded, so it is absent from the report rather than measured. `DeMorgan`,
+`MintPlayer.BrowserDialog.Demo` and `MintPlayer.PlatformBrowser.Demo` never appear.
+
+Verified after the change: `MintPlayer.ThreeDee.Demo` is gone, `MintPlayer.BrowserDialog` drops
+from 14 measured files to 10 and `MintPlayer.KarnaughMap` from 18 to 16. The one remaining file
+matching `*Designer*` is `KarnaughMapDesigner.cs`, which is hand-written support code and is
+correctly measured.
 
 ### 6.2 Build files (D18)
 
@@ -458,3 +506,41 @@ The server renders the SVG itself (not shields.io). It never 404s — an unknown
 - [ ] All ten packable projects produce `.nupkg` + `.snupkg` at `11.0.0-rc.1`; no test project
       produces a package.
 - [ ] `MintPlayer.KarnaughMap.Demo` still renders and responds to input (the only check for R4).
+
+---
+
+## 13. What implementation changed
+
+Everything in §2 held except the two below. Both were found by building the thing.
+
+**§3.2 — coverlet is unreachable, so coverage is collected differently.** The plan assumed xUnit v3
+merely *preferred* Microsoft.Testing.Platform. In fact MTP's VSTest bridge is removed on SDK 10+,
+so coverlet's data collector cannot attach at all. Coverage comes from
+Microsoft.Testing.Extensions.CodeCoverage instead — still cobertura, so the upload contract is
+unchanged, but D1 and D7 no longer describe what is built, and there is no `coverlet.runsettings`.
+This is the one place this repository diverges from every other MintPlayer repo, and it is forced,
+not chosen.
+
+**§6.1a — exclusions live in source, not in a settings file.** `--coverage-settings` is rejected at
+startup by extension version 18.11.2. The two exclusions that were actually needed turned out to
+have better homes: the demo dependency was removed outright (its 20-line scene builder moved into
+the test project), and the WinForms designer classes carry `[ExcludeFromCodeCoverage]`. Everything
+else §6.1 filtered for never needed filtering, because an assembly with no test project is never
+loaded and is therefore absent rather than measured.
+
+**Both failures were silent**, which is R1 exactly: a test host that rejects an option reports
+`Zero tests ran` with a handshake failure, not an error naming the option. Anyone changing the
+coverage invocation should assume a green run proves nothing until a report file is confirmed on
+disk.
+
+Two smaller corrections: `dotnet sln add` is broken in SDK `11.0.100-rc.1.26425.128` (it reports
+success and writes nothing, so solution entries were written directly), and xUnit v3 requires
+`<OutputType>Exe</OutputType>` to be set explicitly rather than inferring it.
+
+### Outcome against §12
+
+All acceptance criteria are met except the three that need the live service, which cannot be
+verified until the token exists (M0) and the branch is pushed: the report page rendering source
+files, the check runs appearing on a pull request, and the badge showing a real percentage.
+
+`dotnet test` runs **146 tests across six projects**, up from zero executed assertions.
