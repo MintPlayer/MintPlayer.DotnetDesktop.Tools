@@ -1,4 +1,4 @@
-﻿namespace KarnaughMap.Test
+﻿namespace KarnaughMap.Demo
 {
     public partial class Form1
     {

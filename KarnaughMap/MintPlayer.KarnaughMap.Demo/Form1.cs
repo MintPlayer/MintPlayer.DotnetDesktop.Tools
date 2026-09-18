@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using MintPlayer.KarnaughMap.Enums;
 using MintPlayer.KarnaughMap.Events.EventArgs;
 
-namespace KarnaughMap.Test
+namespace KarnaughMap.Demo
 {
     public partial class Form1 : Form
     {

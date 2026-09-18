@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--
+		The platform-versioned leg, NOT plain net11.0 (PRD D14). PlatformBrowser.cs has
+		conditional compilation on the platform axis: the UWP PackageManager block only
+		exists here. Target the plain leg and that code is never compiled into anything
+		under test, so it silently vanishes from the coverage report.
+		-->
+		<TargetFramework>net11.0-windows10.0.22621</TargetFramework>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MintPlayer.PlatformBrowser\MintPlayer.PlatformBrowser.csproj" />
+	</ItemGroup>
+
+</Project>

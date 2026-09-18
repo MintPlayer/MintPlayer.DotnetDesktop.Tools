@@ -31,4 +31,33 @@
 		<IsPackable Condition="$(MSBuildProjectName.EndsWith('.Tests'))">false</IsPackable>
 	</PropertyGroup>
 
+	<!--
+	Shared test-project setup, so six csproj files do not repeat it.
+
+	OutputType=Exe is REQUIRED by xUnit v3 (it self-hosts, and does not infer this). It also
+	keeps test projects out of the symbol-package settings in Directory.Build.targets, which
+	key off OutputType == Library.
+
+	Coverage comes from Microsoft.Testing.Extensions.CodeCoverage, not coverlet: xUnit v3
+	runs on Microsoft.Testing.Platform, and MTP dropped its VSTest bridge on the .NET 10 SDK
+	and later, so the "XPlat Code Coverage" data collector cannot attach at all. The runner
+	itself is selected in global.json ("test": { "runner": "Microsoft.Testing.Platform" });
+	without that, dotnet test still routes through the VSTest target and every test project
+	fails to run.
+	-->
+	<PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+		<OutputType>Exe</OutputType>
+		<IsTestProject>true</IsTestProject>
+		<LangVersion>15</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+	</PropertyGroup>
+
+	<ItemGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+		<PackageReference Include="xunit.v3" Version="4.0.1" />
+		<Using Include="Xunit" />
+	</ItemGroup>
+
 </Project>

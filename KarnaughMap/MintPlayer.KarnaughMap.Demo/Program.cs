@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace KarnaughMap.Test
+namespace KarnaughMap.Demo
 {
     static class Program
     {
