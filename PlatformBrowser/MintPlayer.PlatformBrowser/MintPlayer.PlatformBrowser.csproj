@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<!-- Must be a specific windows version target -->
-		<TargetFrameworks>net10.0;net10.0-windows10.0.22621</TargetFrameworks>
+		<TargetFrameworks>net10.0;net11.0;net10.0-windows10.0.22621;net11.0-windows10.0.22621</TargetFrameworks>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -16,10 +16,8 @@
 		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/PlatformBrowser/MintPlayer.PlatformBrowser</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
-		<Version>10.0.0</Version>
+		<Version>$(PlatformBrowserVersion)</Version>
 
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
@@ -35,14 +33,6 @@
 		<Compile Remove="Enums\eAssociationType.cs" />
 		<None Include="Extensions\PackageVersionExtensions.cs" />
 		<Compile Remove="Extensions\PackageVersionExtensions.cs" Condition=" $(TargetFramework.StartsWith('net7.0-windows')) == 'false' " />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
 	</ItemGroup>
 
 </Project>

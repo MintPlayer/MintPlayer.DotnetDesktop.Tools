@@ -1,5 +1,7 @@
 <Project>
 
+	<Import Project="versions.props" />
+
 	<!--
 	Imported BEFORE each project's own body, so anything set here is a DEFAULT the
 	project can override. Conditions on project-declared properties ($(OutputType),

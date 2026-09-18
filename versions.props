@@ -1,0 +1,40 @@
+<Project>
+
+	<!--
+	Package versions, one property per version group. Data only - no build logic lives
+	here, because a tool writes this file: the public-API-hash tool computes whether a
+	library's surface changed and rewrites the number. Keeping it separate from
+	Directory.Build.props means a bug in that tool cannot corrupt build configuration.
+
+	A library and its .Abstractions package MUST share a property. They are released as a
+	pair, and an abstractions package that ships a contract its implementation does not
+	satisfy is worse than useless.
+
+	The libraries are versioned INDEPENDENTLY on purpose. MintPlayer.QuineMcCluskey is on
+	1.x and the desktop libraries are on 11.x; unifying them would mean either dragging
+	QuineMcCluskey to 11.0.0 for no reason or re-releasing five unchanged packages on
+	every bump.
+
+	The -rc.N suffix is load-bearing while .NET 11 is a release candidate: it keeps these
+	packages prerelease so no existing consumer floats onto them, and it is why NU5104
+	(stable package with a prerelease dependency) never fires. After .NET 11 GA on
+	2026-11-10 these move to stable, which requires MintPlayer.ObservableCollection to
+	publish stable 11.0.0 first.
+	-->
+
+	<PropertyGroup>
+		<BrowserDialogVersion>11.0.0-rc.1</BrowserDialogVersion>
+		<IconUtilsVersion>11.0.0-rc.1</IconUtilsVersion>
+		<KarnaughMapVersion>11.0.0-rc.1</KarnaughMapVersion>
+		<PlatformBrowserVersion>11.0.0-rc.1</PlatformBrowserVersion>
+		<ThreeDeeVersion>11.0.0-rc.1</ThreeDeeVersion>
+
+		<!--
+		Not 11.x: this library is netstandard2.0 and is untouched by the .NET 11 upgrade.
+		A minor bump covers the packaging metadata added in this change (repository URL,
+		embedded untracked sources).
+		-->
+		<QuineMcCluskeyVersion>1.1.0-rc.1</QuineMcCluskeyVersion>
+	</PropertyGroup>
+
+</Project>
