@@ -528,7 +528,19 @@ the test project), and the WinForms designer classes carry `[ExcludeFromCodeCove
 else §6.1 filtered for never needed filtering, because an assembly with no test project is never
 loaded and is therefore absent rather than measured.
 
-**Both failures were silent**, which is R1 exactly: a test host that rejects an option reports
+**Third delta, found after the first uploads: Windows paths had to be rebased.** The report page
+was empty for commits whose upload the service had *accepted*. The collector writes absolute paths
+in the host's native form — `D:\a\<repo>\<repo>\ThreeDee\…\Mesh.cs` — while the server resolves
+files by suffix-matching against `git ls-files`, which yields `ThreeDee/…/Mesh.cs`. Those never
+match, so every file was dropped. Silently: upload accepted, build created, page blank, nothing
+red anywhere.
+
+This was written down as a risk in M1 and then not acted on, which is the worst of both. It is now
+`tools/Rebase-CoveragePaths.ps1`, run before the upload, and it **fails the build** when no path
+matches — turning the silent case into a loud one. Every other MintPlayer repo runs its tests on
+Ubuntu, where paths are already forward-slashed, so no other repo needs this.
+
+**All three failures were silent**, which is R1 exactly: a test host that rejects an option reports
 `Zero tests ran` with a handshake failure, not an error naming the option. Anyone changing the
 coverage invocation should assume a green run proves nothing until a report file is confirmed on
 disk.

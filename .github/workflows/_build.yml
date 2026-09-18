@@ -82,6 +82,25 @@ jobs:
           --
           --coverage --coverage-output-format cobertura --results-directory coverage
 
+      - name: Rebase coverage paths to repository-relative
+        # The collector writes absolute paths in the host's native form, so on a Windows
+        # runner every filename looks like
+        #   D:\a\<repo>\<repo>\ThreeDee\MintPlayer.ThreeDee\Geometry\Mesh.cs
+        # while the server resolves files by suffix-matching against `git ls-files`, which
+        # yields ThreeDee/MintPlayer.ThreeDee/Geometry/Mesh.cs. Those never match, so the
+        # server drops every file - and does it SILENTLY: the upload is accepted, the build
+        # is created, and the report page is simply empty.
+        #
+        # Every other MintPlayer repo runs its tests on Ubuntu, where the paths are already
+        # forward-slashed, which is why only this repo needs the step.
+        #
+        # Deliberately NOT continue-on-error: the script fails only when no path matched,
+        # which means the upload would produce an empty report. That is exactly the silent
+        # failure this step exists to convert into a loud one.
+        if: inputs.upload-coverage && hashFiles('coverage/*.cobertura.xml') != ''
+        shell: pwsh
+        run: ./tools/Rebase-CoveragePaths.ps1 -Path coverage -WorkspaceRoot "${{ github.workspace }}"
+
       - name: Upload coverage
         # hashFiles guard: a run that produced no report is a no-op rather than an upload of
         # nothing. That matters more here than usual, because a test host that rejects an
