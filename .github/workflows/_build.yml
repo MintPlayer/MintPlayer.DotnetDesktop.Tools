@@ -82,6 +82,31 @@ jobs:
           --
           --coverage --coverage-output-format cobertura --results-directory coverage
 
+      - name: Strip the UTF-8 BOM from the coverage reports
+        # TEMPORARY - remove once MintPlayer.Spark#415 is fixed server-side.
+        #
+        # Microsoft.Testing.Extensions.CodeCoverage writes its Cobertura starting with
+        # EF BB BF. A BOM is legal in a UTF-8 XML document, but the coverage server rejects
+        # it with "Data at the root level is invalid. Line 1, position 1." and measures ZERO
+        # files, while still accepting the upload - so the build is green and the report
+        # page is blank.
+        #
+        # This is why no other MintPlayer repo needs it: they all collect with coverlet,
+        # which writes no BOM. Nothing to do with Windows - that collector emits the BOM on
+        # any OS.
+        if: inputs.upload-coverage && hashFiles('coverage/*.cobertura.xml') != ''
+        shell: pwsh
+        run: |
+          $stripped = 0
+          Get-ChildItem coverage -Filter *.cobertura.xml -Recurse | ForEach-Object {
+            $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
+            if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+              [System.IO.File]::WriteAllBytes($_.FullName, $bytes[3..($bytes.Length - 1)])
+              $stripped++
+            }
+          }
+          Write-Host "Stripped a UTF-8 BOM from $stripped report(s)."
+
       - name: Upload coverage
         id: coverage
         # hashFiles guard: a run that produced no report is a no-op rather than an upload of
@@ -151,9 +176,20 @@ jobs:
             echo "| line rate | ${{ steps.coverage.outputs.line-rate }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+          # Treat EMPTY as failure too, not just "0". On the run that exposed the BOM the
+          # server returned CompleteWithErrors with files-count unset, so a `= "0"` test
+          # did not fire and the build stayed green on an empty report - the very thing
+          # this guard exists to prevent.
           files='${{ steps.coverage.outputs.files-count }}'
-          if [ "$files" = "0" ]; then
-            echo "::error::The coverage server measured 0 files. The upload was accepted but nothing resolved, so the report is empty."
+          state='${{ steps.coverage.outputs.state }}'
+
+          if [ "$state" != "Complete" ]; then
+            echo "::error::The coverage build finalized as '$state' rather than 'Complete'. The report is incomplete or empty; see the reasons logged above."
+            exit 1
+          fi
+
+          if [ -z "$files" ] || [ "$files" = "0" ]; then
+            echo "::error::The coverage server measured ${files:-no} files. The upload was accepted but nothing resolved, so the report is empty."
             exit 1
           fi
 
