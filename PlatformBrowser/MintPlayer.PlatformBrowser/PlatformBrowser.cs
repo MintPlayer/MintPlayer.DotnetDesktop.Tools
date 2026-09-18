@@ -187,10 +187,6 @@ public static class PlatformBrowser
         return browsers;
     }
 
-#if WINDOWS
-    private static string ToFormattedString(this Windows.ApplicationModel.PackageVersion v) => $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
-#endif
-
     private static Dictionary<string, object> CreateEdgeFileAssociations()
     {
         var edgeAssociations = new Dictionary<string, object>

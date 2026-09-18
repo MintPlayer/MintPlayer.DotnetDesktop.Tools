@@ -31,8 +31,21 @@
 
 	<ItemGroup>
 		<Compile Remove="Enums\eAssociationType.cs" />
+	</ItemGroup>
+
+	<!--
+	PackageVersionExtensions wraps Windows.ApplicationModel.PackageVersion, which only
+	exists on the platform-versioned Windows legs, so it is compiled there and shown as a
+	non-compiled item elsewhere.
+
+	The previous condition tested StartsWith('net7.0-windows'), left over from a net7 era.
+	No current TFM starts with that, so the file was excluded from EVERY leg and its
+	public ToFormattedString/ToPackageVersion API shipped in no assembly at all - which is
+	why PlatformBrowser.cs had grown a private duplicate of ToFormattedString.
+	-->
+	<ItemGroup Condition=" $(TargetFramework.Contains('-windows10.0.22621')) == 'false' ">
+		<Compile Remove="Extensions\PackageVersionExtensions.cs" />
 		<None Include="Extensions\PackageVersionExtensions.cs" />
-		<Compile Remove="Extensions\PackageVersionExtensions.cs" Condition=" $(TargetFramework.StartsWith('net7.0-windows')) == 'false' " />
 	</ItemGroup>
 
 </Project>
