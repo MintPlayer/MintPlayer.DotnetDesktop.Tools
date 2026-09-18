@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MintPlayer.ThreeDee.Demo", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MintPlayer.ThreeDee.Test", "ThreeDee\MintPlayer.ThreeDee.Test\MintPlayer.ThreeDee.Test.csproj", "{479DBD1E-EC83-4748-8BE1-0EE49F5B14AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MintPlayer.QuineMcCluskey.Tests", "QuineMcCluskey\MintPlayer.QuineMcCluskey.Tests\MintPlayer.QuineMcCluskey.Tests.csproj", "{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -223,11 +225,24 @@ Global
 		{479DBD1E-EC83-4748-8BE1-0EE49F5B14AF}.Release|x64.Build.0 = Release|Any CPU
 		{479DBD1E-EC83-4748-8BE1-0EE49F5B14AF}.Release|x86.ActiveCfg = Release|Any CPU
 		{479DBD1E-EC83-4748-8BE1-0EE49F5B14AF}.Release|x86.Build.0 = Release|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Debug|x64.Build.0 = Debug|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Debug|x86.Build.0 = Debug|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Release|x64.ActiveCfg = Release|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Release|x64.Build.0 = Release|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Release|x86.ActiveCfg = Release|Any CPU
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E} = {DD5C43CD-677F-4CD8-9A1E-B987C25C1AC0}
 		{8814657B-CDE3-49B4-BD61-9B81BFFE651D} = {5FD49BFD-0466-4E0F-9ED8-98163F489DE4}
 		{F91F23A8-F332-4CE6-974B-889F03F2D96C} = {5FD49BFD-0466-4E0F-9ED8-98163F489DE4}
 		{215419B6-D252-4484-A01F-1A266E11479D} = {52BCCC9A-D630-4088-B0B6-4C4B1ECD79EC}

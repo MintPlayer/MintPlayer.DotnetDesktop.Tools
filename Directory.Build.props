@@ -1,0 +1,32 @@
+<Project>
+
+	<!--
+	Imported BEFORE each project's own body, so anything set here is a DEFAULT the
+	project can override. Conditions on project-declared properties ($(OutputType),
+	$(IsPackable), ...) do NOT work here - those properties are not set yet and the
+	condition silently never matches. Put that logic in Directory.Build.targets.
+	-->
+
+	<PropertyGroup>
+		<!--
+		SourceLink ships in the SDK since .NET 8, so no Microsoft.SourceLink.* package is
+		needed. But the SDK provides the source MAPPING only - without these two the
+		repository URL never lands in the nupkg and untracked generated sources are not
+		embedded in the PDB.
+		-->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!--
+		Belt and braces over the explicit <IsPackable>false</IsPackable> that every test
+		project carries. publish-release.yml pushes "**/*.nupkg" to nuget.org, and that is
+		not reversible - a package can only be delisted, never unpublished. A test project
+		that leaks onto nuget.org by omission is therefore a permanent mistake, so the
+		guard keys off the filename rather than trusting each csproj to remember.
+		-->
+		<IsPackable Condition="$(MSBuildProjectName.EndsWith('.Tests'))">false</IsPackable>
+	</PropertyGroup>
+
+</Project>

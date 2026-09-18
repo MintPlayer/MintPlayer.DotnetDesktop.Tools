@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--
+		Single-targeted on purpose (PRD D14). The library under test is netstandard2.0, so
+		there is no per-TFM source variation to cover, and single-targeting keeps this out
+		of the coverage server's per-TFM union - which is untested where denominators
+		differ per TFM.
+		-->
+		<TargetFramework>net11.0</TargetFramework>
+		<!--
+		Required by xUnit v3 (it self-hosts, so the test project IS the runner). Must be
+		set explicitly - v3 does not infer it. It also keeps this project out of the
+		symbol-package settings in Directory.Build.targets, which key off OutputType.
+		-->
+		<OutputType>Exe</OutputType>
+		<LangVersion>15</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+		<!--
+		xUnit v3 self-hosts on Microsoft.Testing.Platform, and MTP dropped its VSTest
+		bridge on the .NET 10 SDK and later ("Testing with VSTest target is no longer
+		supported"). So the coverlet VSTest data collector cannot be used at all here -
+		coverage comes from Microsoft.Testing.Extensions.CodeCoverage instead, driven by
+		the MTP command line rather than by a coverlet runsettings file.
+		-->
+		<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+		<PackageReference Include="xunit.v3" Version="4.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MintPlayer.QuineMcCluskey\MintPlayer.QuineMcCluskey.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+</Project>
