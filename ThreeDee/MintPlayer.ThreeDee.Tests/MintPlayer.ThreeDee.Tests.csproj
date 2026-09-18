@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net11.0-windows</TargetFramework>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<!--
+		The tests never open a window, but they are WinForms-bound all the same: the tool
+		and picker assertions speak in Keys and Point, which arrive through the implicit
+		WinForms/Drawing global usings.
+		-->
+		<UseWindowsForms>true</UseWindowsForms>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!--
+		Deliberately does NOT reference MintPlayer.ThreeDee.Demo. The render-mesh
+		assertions need a realistic multi-face scene, which used to come from the demo
+		app's DemoScene.Build(); referencing it dragged the whole 1480-line demo into the
+		coverage report as if it were library code. TestScene.cs is that scene builder,
+		owned by the tests, so the demo stays out of the measurement entirely.
+		-->
+		<ProjectReference Include="..\MintPlayer.ThreeDee\MintPlayer.ThreeDee.csproj" />
+	</ItemGroup>
+
+</Project>

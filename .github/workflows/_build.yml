@@ -1,0 +1,148 @@
+# Shared build/test/coverage pipeline. The four entry workflows differ only in their
+# triggers and in whether they upload coverage or publish packages, so the pipeline itself
+# lives here once. Editing it in four copies is how the org's workflows drifted: one repo
+# installs only the .NET 11 SDK while another correctly installs .NET 10 alongside it.
+
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      upload-coverage:
+        description: Upload the coverage report to coverage.mintplayer.com.
+        type: boolean
+        default: false
+      coverage-base-sha:
+        description: Base commit of the pull request, used for the patch coverage rate.
+        type: string
+        default: ''
+      is-fork-pr:
+        description: Whether this run is a pull request from a fork, which gets no secrets.
+        type: boolean
+        default: false
+      publish:
+        description: Push the packed NuGet packages.
+        type: boolean
+        default: false
+    secrets:
+      COVERAGE_TOKEN:
+        required: false
+      PUBLISH_TO_NUGET_ORG:
+        required: false
+
+jobs:
+  build:
+    name: build
+    # Windows, not ubuntu-latest. Every library here targets net*-windows, and while
+    # EnableWindowsTargeting lets those COMPILE on Linux, it does not provide the Windows
+    # Desktop runtime the tests need in order to run.
+    runs-on: windows-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          # The .NET 11 SDK builds everything (global.json pins the exact RC). The .NET 10
+          # SDK is installed for its runtime, which is what actually executes the net10.0
+          # half of the multi-targeted libraries.
+          # Pinned exactly rather than 11.0.x: while .NET 11 is a release candidate, a
+          # floating version would let an RC2 change CI behaviour without a commit.
+          dotnet-version: |
+            10.0.x
+            11.0.100-rc.1.26425.128
+          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        env:
+          NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
+
+      - name: Restore
+        run: dotnet restore
+        env:
+          NUGET_AUTH_TOKEN: ${{ github.token }}
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        # --no-restore does NOT imply --no-build. Without --no-build the solution is built
+        # a second time and coverage is measured against a build nothing else uses.
+        #
+        # Coverage comes from Microsoft.Testing.Extensions.CodeCoverage via Microsoft.Testing
+        # .Platform, NOT from coverlet's "XPlat Code Coverage" data collector: xUnit v3 runs
+        # on MTP, and MTP dropped its VSTest bridge on the .NET 10 SDK and later. The runner
+        # is selected in global.json.
+        run: >
+          dotnet test --no-restore --no-build --configuration Release
+          --
+          --coverage --coverage-output-format cobertura --results-directory coverage
+
+      - name: Rebase coverage paths to repository-relative
+        # The collector writes absolute paths in the host's native form, so on a Windows
+        # runner every filename looks like
+        #   D:\a\<repo>\<repo>\ThreeDee\MintPlayer.ThreeDee\Geometry\Mesh.cs
+        # while the server resolves files by suffix-matching against `git ls-files`, which
+        # yields ThreeDee/MintPlayer.ThreeDee/Geometry/Mesh.cs. Those never match, so the
+        # server drops every file - and does it SILENTLY: the upload is accepted, the build
+        # is created, and the report page is simply empty.
+        #
+        # Every other MintPlayer repo runs its tests on Ubuntu, where the paths are already
+        # forward-slashed, which is why only this repo needs the step.
+        #
+        # Deliberately NOT continue-on-error: the script fails only when no path matched,
+        # which means the upload would produce an empty report. That is exactly the silent
+        # failure this step exists to convert into a loud one.
+        if: inputs.upload-coverage && hashFiles('coverage/*.cobertura.xml') != ''
+        shell: pwsh
+        run: ./tools/Rebase-CoveragePaths.ps1 -Path coverage -WorkspaceRoot "${{ github.workspace }}"
+
+      - name: Upload coverage
+        # hashFiles guard: a run that produced no report is a no-op rather than an upload of
+        # nothing. That matters more here than usual, because a test host that rejects an
+        # option reports "Zero tests ran" rather than failing loudly.
+        if: >
+          inputs.upload-coverage
+          && !inputs.is-fork-pr
+          && hashFiles('coverage/*.cobertura.xml') != ''
+        continue-on-error: true
+        uses: MintPlayer/MintPlayer.Spark/apps/CodeCoverage/action@coverage-upload-v1
+        with:
+          url: https://coverage.mintplayer.com
+          token: ${{ secrets.COVERAGE_TOKEN }}
+          # One file per test project, at the TOP LEVEL only - deliberately not `**`.
+          # Microsoft.Testing.Platform also writes coverage/merged/merged-*.cobertura.xml,
+          # which is the union of these six; a `**` glob uploads both and the server counts
+          # every line twice.
+          files: |
+            coverage/*.cobertura.xml
+          # With search on, a glob matching nothing silently falls back to auto-detection
+          # and would upload stray unparsable reports.
+          disable-search: true
+          base-sha: ${{ inputs.coverage-base-sha }}
+          # Closes the build now instead of waiting out the debounce, so the check runs
+          # appear while the pull request is still being looked at.
+          finish: true
+          # A coverage-service outage must never be the reason a build fails or a release
+          # is blocked.
+          fail-ci-if-error: false
+
+      - name: Pack
+        run: dotnet pack --no-build --configuration Release /p:ContinuousIntegrationBuild=true
+
+      - name: Push to NuGet
+        if: inputs.publish
+        run: dotnet nuget push "**/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.PUBLISH_TO_NUGET_ORG }} --skip-duplicate
+
+      - name: Push to GitHub Packages
+        if: inputs.publish
+        # --no-symbols because GitHub Packages rejects symbol packages. nuget.org gets the
+        # matching .snupkg automatically alongside each .nupkg, which is why only this push
+        # needs the flag.
+        run: dotnet nuget push "**/*.nupkg" --no-symbols --skip-duplicate
+        env:
+          NUGET_AUTH_TOKEN: ${{ github.token }}

@@ -1,0 +1,19 @@
+<Project>
+
+	<!--
+	Imported AFTER each project's own body, so $(OutputType) and $(IsPackable) carry the
+	values the project actually declared. This is the only place a condition on them
+	works - the same condition in Directory.Build.props matches nothing.
+	-->
+
+	<PropertyGroup Condition="'$(OutputType)' == 'Library' And '$(IsPackable)' != 'false'">
+		<!--
+		Symbol packages are meaningful only for shipped libraries. Demos, apps and test
+		projects are OutputType Exe (xUnit v3 test projects are self-executing, so they
+		are Exe too), which excludes all of them here without needing a second condition.
+		-->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+
+</Project>

@@ -1,5 +1,6 @@
-﻿namespace MintPlayer.KarnaughMap
+namespace MintPlayer.KarnaughMap
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // machine-generated InitializeComponent
     public partial class KarnaughMap
     {
         /// <summary> 

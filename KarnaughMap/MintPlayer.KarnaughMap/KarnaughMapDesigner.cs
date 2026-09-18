@@ -12,7 +12,7 @@ public sealed class KarnaughMapDesigner : ControlDesigner
     {
         if (Control is KarnaughMap karnaughMap)
         {
-            var offset = karnaughMap.Font.Height + KarnaughMap.gridSize;
+            var offset = karnaughMap.Font.Height + KarnaughMapPresenter.GridSize;
             var clientPoint = karnaughMap.PointToClient(screenCoordinates);
             if (clientPoint.Y >= offset && clientPoint.X >= offset)
                 return true;

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net11.0-windows</TargetFramework>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MintPlayer.KarnaughMap\MintPlayer.KarnaughMap.csproj" />
+		<ProjectReference Include="..\..\QuineMcCluskey\MintPlayer.QuineMcCluskey\MintPlayer.QuineMcCluskey.csproj" />
+	</ItemGroup>
+
+</Project>

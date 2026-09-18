@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--
+		Not a -windows target and no WinForms reference: the render model is plain data
+		(ints and strings, no Point/Size/Color), and the view contract is four members.
+		That is what lets a presenter test run without a message loop.
+		-->
+		<TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+		<LangVersion>15</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageId>MintPlayer.KarnaughMap.Abstractions</PackageId>
+		<Authors>Pieterjan De Clippel</Authors>
+		<Company>MintPlayer</Company>
+		<Description>Contracts for MintPlayer.KarnaughMap: the view seam and the render model its presenter produces.</Description>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/KarnaughMap/MintPlayer.KarnaughMap.Abstractions</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
+		<RepositoryType>Git</RepositoryType>
+		<PackageTags>Karnaugh-map, Quine McCluskey, abstractions</PackageTags>
+		<!-- Shared with MintPlayer.KarnaughMap: the pair is released together. -->
+		<Version>$(KarnaughMapVersion)</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!--
+		PRD D19: MintPlayer.ObservableCollection leaks into this contract because
+		KarnaughMap exposes InputVariables as one. Narrowing it to IList<string> is the
+		right long-term shape and is deferred until the public-API-hash tool can classify
+		that change.
+		-->
+		<PackageReference Include="MintPlayer.ObservableCollection" Version="11.0.0-rc.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\QuineMcCluskey\MintPlayer.QuineMcCluskey.Abstractions\MintPlayer.QuineMcCluskey.Abstractions.csproj" />
+	</ItemGroup>
+
+</Project>

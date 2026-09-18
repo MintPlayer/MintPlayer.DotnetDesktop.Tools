@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--
+		Unlike the other abstractions packages this one IS Windows-targeted, and
+		unavoidably so: the contract is expressed in System.Drawing.Icon, which has been
+		Windows-only since .NET 6. A platform-neutral icon contract would mean inventing a
+		parallel image type, which buys nothing.
+		-->
+		<TargetFrameworks>net10.0-windows;net11.0-windows</TargetFrameworks>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<LangVersion>15</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageId>MintPlayer.IconUtils.Abstractions</PackageId>
+		<Authors>Pieterjan De Clippel</Authors>
+		<Company>MintPlayer</Company>
+		<Description>Contracts for MintPlayer.IconUtils: icon extraction and the native module-resource seam it reads through.</Description>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/IconUtils/MintPlayer.IconUtils.Abstractions</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
+		<RepositoryType>Git</RepositoryType>
+		<PackageTags>Icon, Split, Extract, abstractions</PackageTags>
+		<!-- Shared with MintPlayer.IconUtils: the pair is released together. -->
+		<Version>$(IconUtilsVersion)</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Drawing.Common" Version="11.0.0-rc.1.26425.128" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="System.Drawing" />
+	</ItemGroup>
+
+</Project>

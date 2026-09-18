@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFramework>net10.0-windows</TargetFramework>
+		<TargetFrameworks>net10.0-windows;net11.0-windows</TargetFrameworks>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -19,10 +19,8 @@
 		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
 		<PackageTags>3D modeling mesh rasterizer winforms sketchup half-edge</PackageTags>
-		<Version>10.0.2</Version>
+		<Version>$(ThreeDeeVersion)</Version>
 
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 </Project>

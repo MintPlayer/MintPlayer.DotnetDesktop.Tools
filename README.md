@@ -1,10 +1,18 @@
-# MintPlayer.BrowserDialog
+# MintPlayer.DotnetDesktop.Tools
+
+[![Coverage](https://coverage.mintplayer.com/badge/MintPlayer/MintPlayer.DotnetDesktop.Tools.svg)](https://coverage.mintplayer.com/r/MintPlayer/MintPlayer.DotnetDesktop.Tools)
+
+Windows desktop libraries for .NET: a browser picker dialog, installed-browser detection,
+icon extraction, an interactive Karnaugh map control, a Quine-McCluskey solver and a 3D
+modeling engine.
+
+## MintPlayer.BrowserDialog
 Dialog that lets the user pick from the installed webbrowsers
 
-## Preview
+### Preview
 ![Dialog that lets the user pick from the installed webbrowsers](https://github.com/MintPlayer/MintPlayer.PlatformBrowser/blob/master/BrowserDialog.png)
 
-## Version info
+### Version info
 
 | License                                                                                                               | Build status                                                                                           |
 |-----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
@@ -29,13 +37,19 @@ Open the NuGet package manager and install the `MintPlayer.PlatformBrowser` pack
     Install-Package MintPlayer.PlatformBrowser
 
 ### Usage
-Simply call the following method:
+Create a ```PlatformBrowser``` and call it:
 
-    var browsers = PlatformBrowser.GetInstalledBrowsers();
+    var platformBrowser = new PlatformBrowser();
+    var browsers = await platformBrowser.GetInstalledBrowsers();
+
+It implements ```IPlatformBrowser``` from **MintPlayer.PlatformBrowser.Abstractions**, so you
+can depend on the contract without taking the registry and UWP implementation with it, and
+substitute it in tests.
 
 ### Copy-n-paste code sample
 
-    var browsers = PlatformBrowser.GetInstalledBrowsers();
+    var platformBrowser = new PlatformBrowser();
+    var browsers = await platformBrowser.GetInstalledBrowsers();
     foreach (var browser in browsers)
     {
         Console.WriteLine($"Browser: {browser.Name}");
@@ -55,8 +69,9 @@ Open the NuGet package manager and install the **MintPlayer.IconUtils** package 
 
 ### Usage
 
-    var icon = IconExtractor.Split(icoPath);
-    var icons = IconExtractor.ExtractImagesFromIcon(icon);
+    var extractor = new IconExtractor();
+    var icons = await extractor.Split(icoPath);
+    var images = await extractor.ExtractImagesFromIcon(icons[0]);
 
 ## MintPlayer.BrowserDialog
 

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--
+		Single-targeted on purpose (PRD D14). The library under test is netstandard2.0, so
+		there is no per-TFM source variation to cover, and single-targeting keeps this out
+		of the coverage server's per-TFM union - which is untested where denominators
+		differ per TFM.
+		-->
+		<TargetFramework>net11.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MintPlayer.QuineMcCluskey\MintPlayer.QuineMcCluskey.csproj" />
+	</ItemGroup>
+
+</Project>

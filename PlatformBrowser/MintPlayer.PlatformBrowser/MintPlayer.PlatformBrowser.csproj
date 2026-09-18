@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<!-- Must be a specific windows version target -->
-		<TargetFrameworks>net10.0;net10.0-windows10.0.22621</TargetFrameworks>
+		<TargetFrameworks>net10.0;net11.0;net10.0-windows10.0.22621;net11.0-windows10.0.22621</TargetFrameworks>
 		<!-- Used for CI/CD on Ubuntu -->
 		<EnableWindowsTargeting>true</EnableWindowsTargeting>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -16,10 +16,8 @@
 		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/PlatformBrowser/MintPlayer.PlatformBrowser</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
 		<RepositoryType>Git</RepositoryType>
-		<Version>10.0.0</Version>
+		<Version>$(PlatformBrowserVersion)</Version>
 
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
@@ -33,16 +31,38 @@
 
 	<ItemGroup>
 		<Compile Remove="Enums\eAssociationType.cs" />
+	</ItemGroup>
+
+	<!--
+	PackageVersionExtensions wraps Windows.ApplicationModel.PackageVersion, which only
+	exists on the platform-versioned Windows legs, so it is compiled there and shown as a
+	non-compiled item elsewhere.
+
+	The previous condition tested StartsWith('net7.0-windows'), left over from a net7 era.
+	No current TFM starts with that, so the file was excluded from EVERY leg and its
+	public ToFormattedString/ToPackageVersion API shipped in no assembly at all - which is
+	why PlatformBrowser.cs had grown a private duplicate of ToFormattedString.
+	-->
+	<ItemGroup Condition=" $(TargetFramework.Contains('-windows10.0.22621')) == 'false' ">
+		<Compile Remove="Extensions\PackageVersionExtensions.cs" />
 		<None Include="Extensions\PackageVersionExtensions.cs" />
-		<Compile Remove="Extensions\PackageVersionExtensions.cs" Condition=" $(TargetFramework.StartsWith('net7.0-windows')) == 'false' " />
+		<Compile Remove="DefaultPackagedBrowserCatalog.Windows.cs" />
+		<None Include="DefaultPackagedBrowserCatalog.Windows.cs" />
+	</ItemGroup>
+
+	<!--
+	The two DefaultPackagedBrowserCatalog files declare the SAME type: one backed by
+	Windows.Management.Deployment.PackageManager, one returning nothing. Exactly one is
+	compiled per leg, which keeps the platform conditional in the project file instead of
+	as #if inside the logic - PlatformBrowser never has to know which leg it is on.
+	-->
+	<ItemGroup Condition=" $(TargetFramework.Contains('-windows10.0.22621')) ">
+		<Compile Remove="DefaultPackagedBrowserCatalog.cs" />
+		<None Include="DefaultPackagedBrowserCatalog.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+		<ProjectReference Include="..\MintPlayer.PlatformBrowser.Abstractions\MintPlayer.PlatformBrowser.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>
