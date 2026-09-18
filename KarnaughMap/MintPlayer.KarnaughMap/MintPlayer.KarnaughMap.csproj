@@ -26,6 +26,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\QuineMcCluskey\MintPlayer.QuineMcCluskey.Abstractions\MintPlayer.QuineMcCluskey.Abstractions.csproj" />
+	  <ProjectReference Include="..\MintPlayer.KarnaughMap.Abstractions\MintPlayer.KarnaughMap.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

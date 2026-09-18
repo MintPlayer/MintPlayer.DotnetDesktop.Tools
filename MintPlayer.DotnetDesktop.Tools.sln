@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MintPlayer.PlatformBrowser.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MintPlayer.IconUtils.Abstractions", "IconUtils\MintPlayer.IconUtils.Abstractions\MintPlayer.IconUtils.Abstractions.csproj", "{82E9CA2F-93A6-46DE-A930-3F995A14C725}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MintPlayer.KarnaughMap.Abstractions", "KarnaughMap\MintPlayer.KarnaughMap.Abstractions\MintPlayer.KarnaughMap.Abstractions.csproj", "{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -265,11 +267,24 @@ Global
 		{82E9CA2F-93A6-46DE-A930-3F995A14C725}.Release|x64.Build.0 = Release|Any CPU
 		{82E9CA2F-93A6-46DE-A930-3F995A14C725}.Release|x86.ActiveCfg = Release|Any CPU
 		{82E9CA2F-93A6-46DE-A930-3F995A14C725}.Release|x86.Build.0 = Release|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Debug|x64.Build.0 = Debug|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Debug|x86.Build.0 = Debug|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Release|x64.ActiveCfg = Release|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Release|x64.Build.0 = Release|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Release|x86.ActiveCfg = Release|Any CPU
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{B4E7CCB1-D2B0-4B66-A88F-EC41A3EBA592} = {9E2D06B7-2956-45D6-887A-032E51C79B12}
 		{82E9CA2F-93A6-46DE-A930-3F995A14C725} = {52BCCC9A-D630-4088-B0B6-4C4B1ECD79EC}
 		{44DFD609-0300-4F24-8C60-FB36DEB832F0} = {5FD49BFD-0466-4E0F-9ED8-98163F489DE4}
 		{02F40630-4B66-4BEB-9B2A-AAEAD13D913E} = {DD5C43CD-677F-4CD8-9A1E-B987C25C1AC0}
