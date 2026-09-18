@@ -535,10 +535,26 @@ files by suffix-matching against `git ls-files`, which yields `ThreeDee/…/Mesh
 match, so every file was dropped. Silently: upload accepted, build created, page blank, nothing
 red anywhere.
 
-This was written down as a risk in M1 and then not acted on, which is the worst of both. It is now
-`tools/Rebase-CoveragePaths.ps1`, run before the upload, and it **fails the build** when no path
-matches — turning the silent case into a loud one. Every other MintPlayer repo runs its tests on
-Ubuntu, where paths are already forward-slashed, so no other repo needs this.
+This was written down as a risk in M1 and then not acted on, which is the worst of both. It was
+answered with `tools/Rebase-CoveragePaths.ps1`, run before the upload, failing the build when no
+path matched — turning the silent case into a loud one.
+
+> **Update: the script is gone, and the diagnosis above was wrong.**
+> Raised upstream as MintPlayer.Spark#415, where it was measured rather than inferred. The server
+> never was separator-sensitive: it unifies `\` to `/` on the workspace root, on every `<source>`,
+> on the `git ls-files` output and on every raw report path **before** any comparison, then strips
+> the workspace prefix case-insensitively — the same operation the script performed by hand. Suffix
+> matching is the *fourth* strategy it tries, not the first. An end-to-end test driving a report of
+> exactly this shape through the real action against a live server resolves it correctly, so **why
+> our upload came back empty is still unexplained**; it was not the backslashes.
+>
+> What *was* real is the silence, and that is fixed upstream: the action now warns when files fail
+> to resolve and fails the step when none of them do. The rebase itself also moved into the action
+> (MintPlayer.Spark#416), so no consumer carries it any more — which is why the step and the script
+> are removed here.
+
+Every other MintPlayer repo runs its tests on Ubuntu, where paths are already forward-slashed, so
+no other repo hit this.
 
 **All three failures were silent**, which is R1 exactly: a test host that rejects an option reports
 `Zero tests ran` with a handshake failure, not an error naming the option. Anyone changing the
