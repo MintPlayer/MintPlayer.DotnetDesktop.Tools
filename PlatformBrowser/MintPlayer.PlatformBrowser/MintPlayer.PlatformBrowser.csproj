@@ -46,6 +46,23 @@
 	<ItemGroup Condition=" $(TargetFramework.Contains('-windows10.0.22621')) == 'false' ">
 		<Compile Remove="Extensions\PackageVersionExtensions.cs" />
 		<None Include="Extensions\PackageVersionExtensions.cs" />
+		<Compile Remove="DefaultPackagedBrowserCatalog.Windows.cs" />
+		<None Include="DefaultPackagedBrowserCatalog.Windows.cs" />
+	</ItemGroup>
+
+	<!--
+	The two DefaultPackagedBrowserCatalog files declare the SAME type: one backed by
+	Windows.Management.Deployment.PackageManager, one returning nothing. Exactly one is
+	compiled per leg, which keeps the platform conditional in the project file instead of
+	as #if inside the logic - PlatformBrowser never has to know which leg it is on.
+	-->
+	<ItemGroup Condition=" $(TargetFramework.Contains('-windows10.0.22621')) ">
+		<Compile Remove="DefaultPackagedBrowserCatalog.cs" />
+		<None Include="DefaultPackagedBrowserCatalog.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MintPlayer.PlatformBrowser.Abstractions\MintPlayer.PlatformBrowser.Abstractions.csproj" />
 	</ItemGroup>
 
 </Project>

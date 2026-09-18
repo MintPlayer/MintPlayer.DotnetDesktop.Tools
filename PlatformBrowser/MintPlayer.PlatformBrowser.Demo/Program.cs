@@ -4,7 +4,8 @@ static class Program
 {
     static async Task Main(string[] args)
     {
-        var browsers = await PlatformBrowser.GetInstalledBrowsers();
+        var platformBrowser = new PlatformBrowser();
+        var browsers = await platformBrowser.GetInstalledBrowsers();
         foreach (var browser in browsers)
         {
             Console.WriteLine($"Browser: {browser.Name}");
@@ -17,7 +18,7 @@ static class Program
 
         try
         {
-            var httpDefaultBrowser = await PlatformBrowser.GetDefaultBrowser(browsers, Enums.EProtocolType.Http);
+            var httpDefaultBrowser = await platformBrowser.GetDefaultBrowser(browsers, Enums.EProtocolType.Http);
             Console.WriteLine($"HTTP default browser: {httpDefaultBrowser?.Name}");
         }
         catch (Exception ex)
@@ -29,7 +30,7 @@ static class Program
 
         try
         {
-            var htmlDefaultBrowser = await PlatformBrowser.GetDefaultBrowser(browsers, Enums.EFileType.html);
+            var htmlDefaultBrowser = await platformBrowser.GetDefaultBrowser(browsers, Enums.EFileType.html);
             Console.WriteLine($"HTML default browser: {htmlDefaultBrowser?.Name}");
         }
         catch (Exception ex)

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--
+		Deliberately NOT a -windows target. The whole point of a separate abstractions
+		package is that a consumer can reference the contract without the implementation's
+		weight - here the registry, the file system and the UWP PackageManager. Nothing in
+		this package touches a Windows-only API, so it stays platform-neutral and a
+		-windows consumer resolves this leg happily.
+		-->
+		<TargetFrameworks>net10.0;net11.0</TargetFrameworks>
+		<LangVersion>15</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageId>MintPlayer.PlatformBrowser.Abstractions</PackageId>
+		<Authors>Pieterjan De Clippel</Authors>
+		<Company>MintPlayer</Company>
+		<Description>Contracts for MintPlayer.PlatformBrowser: the browser model and the seams it resolves installed browsers through.</Description>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools/PlatformBrowser/MintPlayer.PlatformBrowser.Abstractions</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/MintPlayer/MintPlayer.DotnetDesktop.Tools</RepositoryUrl>
+		<RepositoryType>Git</RepositoryType>
+		<PackageTags>Get webbrowsers, abstractions</PackageTags>
+		<!-- Shared with MintPlayer.PlatformBrowser: the pair is released together. -->
+		<Version>$(PlatformBrowserVersion)</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Using Include="System.Collections.ObjectModel" />
+		<Using Include="MintPlayer.PlatformBrowser.Enums" />
+	</ItemGroup>
+
+</Project>

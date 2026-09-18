@@ -1,95 +1,45 @@
-﻿using MintPlayer.IconUtils;
-using System.Collections.ObjectModel;
+﻿using MintPlayer.BrowserDialog.Presentation;
 using System.ComponentModel;
 
 namespace MintPlayer.BrowserDialog;
 
 public partial class BrowserDialog : Form
 {
-    public BrowserDialog()
+    private readonly BrowserDialogPresenter presenter;
+    private BrowserListModel model = BrowserListModel.Empty;
+
+    public BrowserDialog() : this(new BrowserDialogPresenter())
     {
+    }
+
+    /// <summary>Creates the dialog over a supplied presenter. Used by tests and by callers that inject their own seams.</summary>
+    public BrowserDialog(BrowserDialogPresenter presenter)
+    {
+        this.presenter = presenter;
         InitializeComponent();
     }
 
     private async void BrowserDialog_Load(object sender, EventArgs e)
     {
+        // Still async void: this is a WinForms event handler, and the framework has no
+        // Task to await. BuildModel is documented never to throw, so nothing escapes into
+        // an unobserved task; the try/finally below only guards the rendering.
         try
         {
             pnlLoading.Visible = true;
             lvBrowsers.Visible = false;
-
-
-            // Suspend the drawing of the listview
             lvBrowsers.SuspendLayout();
-
-            // Remove all items from the listview
             lvBrowsers.Items.Clear();
 
-            // Assign a new imagelist
             lvBrowsers.LargeImageList = new ImageList
             {
                 ImageSize = new Size(60, 60),
                 ColorDepth = ColorDepth.Depth32Bit
             };
 
-            // Get all browsers on the system
-            browsers = await PlatformBrowser.PlatformBrowser.GetInstalledBrowsers();
+            model = await presenter.BuildModel();
 
-            // Loop through all browsers
-            var imageCounter = -1;
-            for (var i = 0; i < browsers.Count; i++)
-            {
-                var browser = browsers[i];
-
-                if (!string.IsNullOrEmpty(browser.IconPath))
-                {
-                    if (new[] { ".ico", ".cur", ".exe" }.Contains(Path.GetExtension(browser.IconPath)))
-                    {
-                        // Get image
-                        var split = await IconExtractor.Split(browser.IconPath);
-                        var icon = split[browser.IconIndex < 0 ? 0 : browser.IconIndex];
-                        var icons = await IconExtractor.ExtractImagesFromIcon(icon);
-                        var largestSize = icons.Max(i => i.Width);
-                        var largestIcon = icons.LastOrDefault(i => i.Width == largestSize);
-                        if (largestIcon != null)
-                        {
-                            lvBrowsers.LargeImageList.Images.Add(largestIcon);
-                            imageCounter++;
-                        }
-                    }
-                    else
-                    {
-                        var image = Image.FromFile(browser.IconPath);
-                        lvBrowsers.LargeImageList.Images.Add(image);
-                        imageCounter++;
-                    }
-                }
-
-                lvBrowsers.Items.Add(new ListViewItem
-                {
-                    Text = browser.Name,
-                    Tag = browser.ExecutablePath.Trim('\"'),
-                    ImageIndex = string.IsNullOrEmpty(browser.IconPath) ? -1 : imageCounter,
-                });
-            }
-
-            // Get default browser
-            defaultBrowser = await PlatformBrowser.PlatformBrowser.GetDefaultBrowser(browsers.ToList(), PlatformBrowser.Enums.EProtocolType.Http);
-
-            // Select default browser
-            if (browsers.Contains(defaultBrowser!))
-            {
-                var defaultBrowserListItem = lvBrowsers.Items[
-                    browsers.IndexOf(
-                        browsers.FirstOrDefault(b => b.ExecutablePath == defaultBrowser?.ExecutablePath)!
-                    )
-                ];
-                defaultBrowserListItem.Focused = defaultBrowserListItem.Selected = true;
-            }
-        }
-        catch (Exception)
-        {
-            // Don't interrupt the dialog
+            Render();
         }
         finally
         {
@@ -100,13 +50,43 @@ public partial class BrowserDialog : Form
         }
     }
 
+    /// <summary>Walks the model onto the list view. Holds no decisions of its own.</summary>
+    private void Render()
+    {
+        var imageCounter = -1;
+        foreach (var entry in model.Entries)
+        {
+            if (entry.Icon != null)
+            {
+                lvBrowsers.LargeImageList!.Images.Add(entry.Icon);
+                imageCounter++;
+            }
+            else if (entry.Image != null)
+            {
+                lvBrowsers.LargeImageList!.Images.Add(entry.Image);
+                imageCounter++;
+            }
+
+            lvBrowsers.Items.Add(new ListViewItem
+            {
+                Text = entry.Name,
+                Tag = entry.ExecutablePath,
+                ImageIndex = entry.HasArtwork ? imageCounter : -1,
+            });
+        }
+
+        if (model.DefaultIndex >= 0 && model.DefaultIndex < lvBrowsers.Items.Count)
+        {
+            var defaultBrowserListItem = lvBrowsers.Items[model.DefaultIndex];
+            defaultBrowserListItem.Focused = defaultBrowserListItem.Selected = true;
+        }
+    }
+
     private void BrowserDialog_Shown(object sender, EventArgs e)
     {
         lvBrowsers.Focus();
     }
 
-    private ReadOnlyCollection<PlatformBrowser.Browser> browsers = new ReadOnlyCollection<PlatformBrowser.Browser>(new List<PlatformBrowser.Browser>());
-    private PlatformBrowser.Browser? defaultBrowser;
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public PlatformBrowser.Browser? SelectedBrowser
     {
@@ -116,10 +96,8 @@ public partial class BrowserDialog : Form
             {
                 return null;
             }
-            else
-            {
-                return browsers[lvBrowsers.SelectedIndices[0]];
-            }
+
+            return model.Entries[lvBrowsers.SelectedIndices[0]].Browser;
         }
         set
         {
@@ -129,9 +107,10 @@ public partial class BrowserDialog : Form
                 return;
             }
 
-            if (browsers.Any(b => b.Name == value.Name))
+            var index = model.Entries.ToList().FindIndex(entry => entry.Browser.Name == value.Name);
+            if (index >= 0)
             {
-                lvBrowsers.SelectedIndices.Add(browsers.IndexOf(value));
+                lvBrowsers.SelectedIndices.Add(index);
             }
         }
     }
@@ -140,5 +119,4 @@ public partial class BrowserDialog : Form
     {
         btnOK.Enabled = lvBrowsers.SelectedItems.Count != 0;
     }
-
 }

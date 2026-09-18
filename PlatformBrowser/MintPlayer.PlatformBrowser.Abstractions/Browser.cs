@@ -15,14 +15,20 @@ public enum EBrowserSource
 
 public class Browser
 {
-    internal Browser()
+    // Widened from internal to public when this type moved into the abstractions package.
+    // The implementation now lives in a different assembly and has to be able to construct
+    // and classify a Browser, and a fake catalog in a test does too. Widening is not a
+    // breaking change for existing consumers, and both members are genuinely useful: where
+    // a browser was found decides how it is launched and grouped.
+    public Browser()
     {
     }
 
-    /// <summary>Internal property that specifies whether the browser object was generated from code, and does not come from the registry.</summary>
-    internal EBrowserSource Source { get; set; }
+    /// <summary>Where this browser was found: the registry, the UWP package manager, or a hard-coded probe.</summary>
+    public EBrowserSource Source { get; set; }
 
-    internal string? KeyName { get; set; } = string.Empty;
+    /// <summary>The registry key name this browser was read from, or null for browsers that did not come from the registry.</summary>
+    public string? KeyName { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string ExecutablePath { get; set; } = string.Empty;
     public string IconPath { get; set; } = string.Empty;

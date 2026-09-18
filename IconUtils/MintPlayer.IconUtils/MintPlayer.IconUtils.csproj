@@ -25,6 +25,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\MintPlayer.IconUtils.Abstractions\MintPlayer.IconUtils.Abstractions.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="System.Drawing.Common" Version="11.0.0-rc.1.26425.128" />
 	</ItemGroup>
 
