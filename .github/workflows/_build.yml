@@ -83,6 +83,7 @@ jobs:
           --coverage --coverage-output-format cobertura --results-directory coverage
 
       - name: Upload coverage
+        id: coverage
         # hashFiles guard: a run that produced no report is a no-op rather than an upload of
         # nothing. That matters more here than usual, because a test host that rejects an
         # option reports "Zero tests ran" rather than failing loudly.
@@ -105,12 +106,56 @@ jobs:
           # and would upload stray unparsable reports.
           disable-search: true
           base-sha: ${{ inputs.coverage-base-sha }}
+          # Ask the server what it actually made of the upload. Without this the action
+          # learns nothing beyond "accepted", which is how a build that measured ZERO files
+          # still passed: the action's own fail-on-zero guard counts paths IT rebased, not
+          # files the SERVER resolved, and those are different numbers.
+          wait-for-finalize: true
+          # Well under the server's 30-minute ceiling: this is a diagnostic, and it must not
+          # hold a Windows runner hostage if the server never finalizes.
+          wait-timeout: 600
           # Closes the build now instead of waiting out the debounce, so the check runs
           # appear while the pull request is still being looked at.
           finish: true
           # A coverage-service outage must never be the reason a build fails or a release
           # is blocked.
           fail-ci-if-error: false
+
+      - name: Report what the coverage server made of the upload
+        # "Upload accepted" only means the bytes arrived. A build can be accepted, finalized
+        # and still have measured NOTHING, which is exactly what happened on a0525c4: the
+        # commit page read "0 file(s) measured on this commit" while this job was green.
+        #
+        # This step puts the server's own verdict in the log and fails when it measured no
+        # files, so that state can never again pass as a successful build.
+        if: always() && steps.coverage.outcome == 'success'
+        shell: bash
+        run: |
+          echo "state:            ${{ steps.coverage.outputs.state }}"
+          echo "files-count:      ${{ steps.coverage.outputs.files-count }}"
+          echo "line-rate:        ${{ steps.coverage.outputs.line-rate }}"
+          echo "lines-covered:    ${{ steps.coverage.outputs.lines-covered }}"
+          echo "lines-coverable:  ${{ steps.coverage.outputs.lines-coverable }}"
+          echo "commit-url:       ${{ steps.coverage.outputs.commit-url }}"
+          echo "assembly-completeness:      ${{ steps.coverage.outputs.assembly-completeness }}"
+          echo "assembly-incomplete-reasons: ${{ steps.coverage.outputs.assembly-incomplete-reasons }}"
+          echo "projection-incomplete-reasons: ${{ steps.coverage.outputs.projection-incomplete-reasons }}"
+
+          {
+            echo "### Coverage"
+            echo ""
+            echo "| field | value |"
+            echo "|---|---|"
+            echo "| state | ${{ steps.coverage.outputs.state }} |"
+            echo "| files measured | ${{ steps.coverage.outputs.files-count }} |"
+            echo "| line rate | ${{ steps.coverage.outputs.line-rate }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          files='${{ steps.coverage.outputs.files-count }}'
+          if [ "$files" = "0" ]; then
+            echo "::error::The coverage server measured 0 files. The upload was accepted but nothing resolved, so the report is empty."
+            exit 1
+          fi
 
       - name: Pack
         run: dotnet pack --no-build --configuration Release /p:ContinuousIntegrationBuild=true
