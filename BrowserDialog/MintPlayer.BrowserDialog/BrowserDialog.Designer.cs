@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 
 namespace MintPlayer.BrowserDialog
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // machine-generated InitializeComponent
     partial class BrowserDialog
     {
         /// <summary>

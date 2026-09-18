@@ -70,7 +70,7 @@ public class ThreeDeeRegressionTests
     [Fact]
     public void Scene_BuildRenderMeshes()
     {
-    var scene = DemoScene.Build();
+    var scene = TestScene.Build();
     var meshes = scene.BuildRenderMeshes();
     Assert.True(meshes.Count == scene.Mesh.Faces.Count, $"one render mesh per face (got {$"{meshes.Count} vs {scene.Mesh.Faces.Count}"})");
 

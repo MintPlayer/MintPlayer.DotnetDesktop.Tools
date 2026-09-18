@@ -4,34 +4,20 @@ on:
   pull_request:
     branches: [ master ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-
     name: pull-request
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.100
-        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-      env:
-        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
-        
-    - name: Install dependencies
-      run: dotnet restore
-      env:
-        NUGET_AUTH_TOKEN: ${{ github.token }}
-        
-    - name: Build
-      run: dotnet build --configuration Debug --no-restore
-      
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
-      
-    - name: Pack
-      run: dotnet pack --no-build --configuration Debug
+    uses: ./.github/workflows/_build.yml
+    with:
+      upload-coverage: true
+      # Lets the service compute the patch coverage rate - how much of what THIS pull
+      # request changed is covered, as opposed to the project total.
+      coverage-base-sha: ${{ github.event.pull_request.base.sha }}
+      # Fork pull requests get no secrets, so the upload cannot work there. Skipping is
+      # right; a contributor's pull request must not go red over a missing token.
+      is-fork-pr: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+    secrets: inherit

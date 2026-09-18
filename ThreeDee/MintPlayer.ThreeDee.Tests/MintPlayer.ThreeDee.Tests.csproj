@@ -13,13 +13,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\MintPlayer.ThreeDee\MintPlayer.ThreeDee.csproj" />
 		<!--
-		DemoScene.Build() provides a realistic multi-face scene for the render-mesh
-		assertions. It is why [*.Demo]* has to be excluded from coverage: without that,
-		the 1480-line demo app would be measured as if it were library code.
+		Deliberately does NOT reference MintPlayer.ThreeDee.Demo. The render-mesh
+		assertions need a realistic multi-face scene, which used to come from the demo
+		app's DemoScene.Build(); referencing it dragged the whole 1480-line demo into the
+		coverage report as if it were library code. TestScene.cs is that scene builder,
+		owned by the tests, so the demo stays out of the measurement entirely.
 		-->
-		<ProjectReference Include="..\MintPlayer.ThreeDee.Demo\MintPlayer.ThreeDee.Demo.csproj" />
+		<ProjectReference Include="..\MintPlayer.ThreeDee\MintPlayer.ThreeDee.csproj" />
 	</ItemGroup>
 
 </Project>

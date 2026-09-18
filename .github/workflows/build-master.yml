@@ -2,38 +2,18 @@ name: build-master
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-
     name: build-master
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.100
-        # Authenticates packages to push to GPR
-        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-      env:
-        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
-        
-    - name: Install dependencies
-      run: dotnet restore
-      env:
-        NUGET_AUTH_TOKEN: ${{ github.token }}
-        
-    - name: Build
-      run: dotnet build --configuration Debug --no-restore
-      
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
-      
-    - name: Pack
-      run: dotnet pack --no-build --configuration Debug
-      
+    uses: ./.github/workflows/_build.yml
+    with:
+      # master is the baseline every pull request's project coverage is measured against.
+      upload-coverage: true
+    secrets: inherit

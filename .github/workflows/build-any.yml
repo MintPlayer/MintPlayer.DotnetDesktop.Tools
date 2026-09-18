@@ -7,35 +7,14 @@ on:
       - '!master'
       - '!release/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-
     name: build-any
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.100
-        source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-      env:
-        NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
-        
-    - name: Install dependencies
-      run: dotnet restore
-      env:
-        NUGET_AUTH_TOKEN: ${{ github.token }}
-        
-    - name: Build
-      run: dotnet build --configuration Debug --no-restore
-      
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
-      
-    - name: Pack
-      run: dotnet pack --no-build --configuration Debug
-      
+    uses: ./.github/workflows/_build.yml
+    # No coverage upload from feature branches: the service keys builds on the commit, and
+    # a branch that is not master and not a pull request has nothing to compare against.
+    secrets: inherit

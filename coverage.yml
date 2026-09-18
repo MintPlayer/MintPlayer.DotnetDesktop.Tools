@@ -1,0 +1,21 @@
+# Coverage gate for coverage.mintplayer.com.
+#
+# Read from the BASE ref, so this file does not affect the pull request that introduces it
+# - it takes effect on the next one. Expecting to see it work immediately looks like a bug
+# and is not one.
+#
+# Non-blocking to start with: this repository went from zero executed assertions to a real
+# suite in one change, so there is no history to set a meaningful threshold against yet.
+# The check runs still appear on every pull request; they just conclude neutrally.
+gate:
+  projectMode: auto
+  # scoped, not projection. Assemblies enter the report as tests are written for them, and
+  # a projection basis reads every newly-measured assembly arriving at 30% as a "drop".
+  projectBasis: scoped
+  projectThreshold: 1
+  # Patch coverage is the number worth watching here. The project total is dragged down
+  # permanently by surfaces that cannot be exercised in CI - P/Invoke into Win32 icon APIs,
+  # registry reads, GDI+ painting - whereas new code has no such excuse.
+  patchTarget: 80
+  patchThreshold: 5
+  blocking: false
