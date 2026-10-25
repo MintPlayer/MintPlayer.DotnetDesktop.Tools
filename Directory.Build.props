@@ -60,4 +60,8 @@
 		<Using Include="Xunit" />
 	</ItemGroup>
 
+
+	<ItemGroup>
+		<PackageReference Include="MintPlayer.Versioning.MSBuild" Version="1.2.0" PrivateAssets="all" />
+	</ItemGroup>
 </Project>
