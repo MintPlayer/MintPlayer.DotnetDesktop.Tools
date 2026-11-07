@@ -27,8 +27,6 @@ on:
     secrets:
       COVERAGE_TOKEN:
         required: false
-      PUBLISH_TO_NUGET_ORG:
-        required: false
 
 jobs:
   build:
@@ -171,9 +169,17 @@ jobs:
       - name: Pack
         run: dotnet pack --no-build --configuration Release /p:ContinuousIntegrationBuild=true
 
-      - name: Push to NuGet
+      # nuget.org is pushed from publish-release.yml itself: trusted publishing names that workflow,
+      # and only it grants id-token: write. Granting it here would fail every other caller.
+      - name: Upload packages
         if: inputs.publish
-        run: dotnet nuget push "**/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.PUBLISH_TO_NUGET_ORG }} --skip-duplicate
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: |
+            **/*.nupkg
+            **/*.snupkg
+          if-no-files-found: error
 
       - name: Push to GitHub Packages
         if: inputs.publish

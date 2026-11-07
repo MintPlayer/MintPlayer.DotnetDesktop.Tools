@@ -17,3 +17,30 @@ jobs:
       upload-coverage: true
       publish: true
     secrets: inherit
+
+  nuget:
+    name: push to nuget.org
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: packages
+
+      # Trusted publishing: the job's GitHub OIDC token (id-token: write) is exchanged for a
+      # short-lived nuget.org API key. The policy lives on nuget.org (owner MintPlayer, workflow
+      # publish-release.yml); a package outside its patterns is refused. `user` is the
+      # nuget.org profile that owns the policy.
+      - name: NuGet login (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: Pieterjan
+
+      - name: Push to NuGet
+        run: dotnet nuget push "packages/**/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --skip-duplicate
