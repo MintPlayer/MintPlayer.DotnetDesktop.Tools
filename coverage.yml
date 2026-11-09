@@ -1,3 +1,21 @@
+# MintPlayer dependency updates (added by the onboarding pull request). Every line is a default: uncomment to change it.
+# dependencies:
+#   enabled: true
+#   schedule: { frequency: weekly, weekday: monday, hour: 6 }   # in the account's time zone
+#   cooldown: 3d                     # third-party releases wait this long; may only lengthen the account's
+#   autoMerge:                       # the largest update merged through the merge queue without an approval
+#     default: minor
+#     "@angular/*": never            # never: every update waits for `approve <group>`
+#     maxCoverageDrop: 0.5           # percentage points
+#   rules:
+#     - match: ["some-package"]
+#       ignore: true
+#   migrate:                         # approved majors run a migration workflow after the apply
+#     - match: "@angular/core"
+#       onMajor: angular-migrate.yml
+#     - match: "nx"
+#       onMajor: nx-migrate.yml
+
 # Coverage gate for coverage.mintplayer.com.
 #
 # Read from the BASE ref, so this file does not affect the pull request that introduces it
@@ -19,3 +37,8 @@ gate:
   patchTarget: 80
   patchThreshold: 5
   blocking: false
+
+# The merge queue (added by the onboarding pull request): dependency pull requests within your thresholds merge through
+# it, and your own pull requests can use it too (label `merge-queue`, or comment `/queue`).
+mergeQueue:
+  enabled: true
